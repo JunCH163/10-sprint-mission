@@ -158,9 +158,7 @@ public class BasicUserService implements UserService {
     }
 
     private boolean resolveOnline(UUID userId) {
-        return userStatusRepository.findAll().stream()
-                .filter(us -> userId.equals(us.getUserId()))
-                .findFirst()
+        return userStatusRepository.findByUserId(userId)
                 .map(UserStatus::isOnline)
                 .orElse(false);
     }
