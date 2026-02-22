@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.user.UserRequestCreateDto;
 import com.sprint.mission.discodeit.dto.user.UserRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.user.UserResponseDto;
+import com.sprint.mission.discodeit.dto.user.UserResponseGetDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
@@ -9,7 +10,6 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.sprint.mission.discodeit.mapper.UserMapper.toCreateDto;
+import static com.sprint.mission.discodeit.mapper.UserMapper.toDto;
 
 @Service
 @RequiredArgsConstructor
@@ -55,11 +58,11 @@ public class BasicUserService implements UserService {
         User savedUser = userRepository.save(user);
         UserStatus userStatus = new UserStatus(savedUser.getId(), Instant.now());
         userStatusRepository.save(userStatus);
-        return toDto(savedUser, userStatus.isOnline());
+        return toCreateDto(savedUser);
     }
 
     @Override
-    public UserResponseDto find(UUID id) {
+    public UserResponseGetDto find(UUID id) {
         User user = validateExistenceUser(id);
         boolean online = resolveOnline(id);
         return toDto(user, online);
@@ -68,16 +71,16 @@ public class BasicUserService implements UserService {
 
 
     @Override
-    public List<UserResponseDto> findAll() {
+    public List<UserResponseGetDto> findAll() {
         return userRepository.findAll().stream()
                 .map(u -> toDto(u, resolveOnline(u.getId())))
                 .toList();
     }
 
     @Override
-    public UserResponseDto update(UserRequestUpdateDto request, MultipartFile profileImage) {
+    public UserResponseDto update(UUID userId, UserRequestUpdateDto request, MultipartFile profileImage) {
         Validators.requireNonNull(request, "request");
-        User user = validateExistenceUser(request.id());
+        User user = validateExistenceUser(userId);
 
         Optional.ofNullable(request.userName())
                 .ifPresent(name -> {Validators.requireNotBlank(name, "userName");
@@ -110,8 +113,7 @@ public class BasicUserService implements UserService {
         }
 
         User savedUser = userRepository.save(user);
-        boolean online = resolveOnline(savedUser.getId());
-        return toDto(savedUser, online);
+        return toCreateDto(savedUser);
     }
 
     @Override
@@ -127,7 +129,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public List<UserResponseDto> findUsersByChannel(UUID channelId) {
+    public List<UserResponseGetDto> findUsersByChannel(UUID channelId) {
         return userRepository.findAll().stream()
                 .filter(user -> user.getJoinedChannelIds().contains(channelId))
                 .map(u -> toDto(u, resolveOnline(u.getId())))
@@ -164,18 +166,6 @@ public class BasicUserService implements UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("유저 id가 존재하지 않습니다."));
 
-    }
-
-    public static UserResponseDto toDto(User user, Boolean online) {
-        return new UserResponseDto(
-                user.getId(),
-                user.getCreatedAt(),
-                user.getUpdatedAt(),
-                user.getUserName(),
-                user.getUserEmail(),
-                user.getProfileId(),
-                online
-        );
     }
 
     private boolean resolveOnline(UUID userId) {
