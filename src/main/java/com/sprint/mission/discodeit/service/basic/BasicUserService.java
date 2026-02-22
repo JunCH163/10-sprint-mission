@@ -36,7 +36,6 @@ public class BasicUserService implements UserService {
             Validators.validationUser(request.userName(), request.userEmail(), request.userPassword());
             validateDuplicationUserName(request.userName());
             validateDuplicationEmail(request.userEmail());
-            validateDuplicationUserPassword(request.userPassword());
 
         User user;
         if (profileImage == null || profileImage.isEmpty()) {
@@ -94,7 +93,6 @@ public class BasicUserService implements UserService {
                 });
         Optional.ofNullable(request.userPassword())
                 .ifPresent(password -> {Validators.requireNotBlank(password, "userPassword");
-                        validateDuplicationUserPassword(password);
                         user.updateUserPassword(password);
                 });
 
@@ -151,15 +149,6 @@ public class BasicUserService implements UserService {
             throw new IllegalArgumentException("이미 존재하는 이름입니다.");
         }
     }
-
-    private void validateDuplicationUserPassword(String userPassword) {
-        if(userRepository.findAll().stream()
-                .anyMatch(user -> userPassword.equals(user.getUserPassword())))
-        {
-            throw new IllegalArgumentException("이미 존재하는 비밀번호입니다.");
-        }
-    }
-
 
     private User validateExistenceUser(UUID id) {
         Validators.requireNonNull(id, "id는 null이 될 수 없습니다.");
