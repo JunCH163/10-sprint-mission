@@ -55,9 +55,30 @@ public class ChannelController {
     }
 
     // 3. 공개 채널 정보 수정
-    @RequestMapping(value = "/update", method = RequestMethod.PATCH)
-    public ResponseEntity<ChannelResponseDto> update(@RequestBody ChannelRequestUpdateDto requestUpdateDto) {
-        ChannelResponseDto crDto = channelService.updateChannel(requestUpdateDto);
+    @Operation(summary = "Channel 정보 수정", operationId = "update_3")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Channel 정보가 성공적으로 수정됨"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Private Channel은 수정할 수 없음",
+                    content = @Content(examples = @ExampleObject(value = "Private channel cannot be updated"))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Channel을 찾을 수 없음",
+                    content = @Content(examples = @ExampleObject(value = "Channel with id {channelId} not found"))
+            )
+    }
+    )
+    @PatchMapping(value = "/{channelId}")
+    public ResponseEntity<ChannelResponseDto> update(
+            @Parameter(description = "수정할 Channel ID")
+            @PathVariable UUID channelId,
+            @RequestBody ChannelRequestUpdateDto requestUpdateDto) {
+        ChannelResponseDto crDto = channelService.updateChannel(channelId, requestUpdateDto);
         return ResponseEntity.ok(crDto);
     }
 

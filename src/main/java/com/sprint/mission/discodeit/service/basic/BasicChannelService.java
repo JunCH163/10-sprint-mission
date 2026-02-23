@@ -92,19 +92,19 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelResponseDto updateChannel(ChannelRequestUpdateDto request) {
+    public ChannelResponseDto updateChannel(UUID channelId, ChannelRequestUpdateDto request) {
         Validators.requireNonNull(request, "request");
-        Channel channel = validateExistenceChannel(request.id());
+        Channel channel = validateExistenceChannel(channelId);
 
         if(channel.getType() == ChannelType.PRIVATE) {
             throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
         }
 
-        Optional.ofNullable(request.channelName())
+        Optional.ofNullable(request.newName())
                 .ifPresent(name -> {Validators.requireNotBlank(name, "channelName");
                     channel.updateChannelName(name);
                 });
-        Optional.ofNullable(request.channelDescription()).ifPresent(des -> {
+        Optional.ofNullable(request.newDescription()).ifPresent(des -> {
             Validators.requireNotBlank(des, "channelDescription");
             channel.updateChannelDescription(des);
         });
