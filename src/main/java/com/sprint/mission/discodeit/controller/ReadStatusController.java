@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusResponseDto;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -52,10 +53,25 @@ public class ReadStatusController {
     }
 
     // 2. 특정 채널의 메시지 수신 정보 수정
-    @RequestMapping(value = "/update", method = RequestMethod.PATCH)
-    public ResponseEntity<Void> update(@RequestBody ReadStatusRequestUpdateDto readStatusUpdateDto) {
-        readStatusService.update(readStatusUpdateDto);
-        return ResponseEntity.ok().build();
+    @Operation(summary = "Message 읽음 상태 수정", operationId = "update_1")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Message 읽음 상태가 성공적으로 수정됨"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Message 읽음 상태를 찾을 수 없음",
+                    content = @Content(examples = @ExampleObject(value = "ReadStatus with id {readStatusId} not found"))
+            )
+    })
+    @PatchMapping(value = "/{readStatusId}")
+    public ResponseEntity<ReadStatusResponseDto> update(
+            @Parameter(description = "수정할 읽음 상태 ID")
+            @PathVariable UUID readStatusId,
+            @RequestBody ReadStatusRequestUpdateDto readStatusUpdateDto) {
+        ReadStatusResponseDto rsDto = readStatusService.update(readStatusId, readStatusUpdateDto);
+        return ResponseEntity.ok(rsDto);
     }
 
     // 3. 특정 사용자의 메시지 수신 정보 조회
