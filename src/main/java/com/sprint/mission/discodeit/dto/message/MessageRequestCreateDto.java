@@ -7,6 +7,5 @@ import java.util.UUID;
 
 public record MessageRequestCreateDto(String content,
                                       UUID channelId,
-                                      UUID authorId,
-                                      List<MultipartFile> attachments) {
+                                      UUID authorId) {
 }

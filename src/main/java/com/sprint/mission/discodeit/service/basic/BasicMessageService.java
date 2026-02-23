@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.message.MessageRequestCreateDto;
 import com.sprint.mission.discodeit.dto.message.MessageRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.sprint.mission.discodeit.mapper.MessageMapper.toDto;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +62,7 @@ public class BasicMessageService implements MessageService {
     public List<MessageResponseDto> findByChannelId(UUID id) {
         return messageRepository.findAll().stream()
                 .filter(m -> id.equals(m.getChannelId()))
-                .map(BasicMessageService::toDto)
+                .map(MessageMapper::toDto)
                 .toList();
     }
 
@@ -96,7 +99,7 @@ public class BasicMessageService implements MessageService {
     public List<MessageResponseDto> readMessagesByUser(UUID userId) {
         return messageRepository.findAll().stream()
                 .filter(m -> m.getAuthorId().equals(userId))
-                .map(BasicMessageService::toDto)
+                .map(MessageMapper::toDto)
                 .toList();
     }
 
@@ -135,18 +138,5 @@ public class BasicMessageService implements MessageService {
         }
         return attachmentIds;
     }
-
-    public static MessageResponseDto toDto(Message message) {
-        return new MessageResponseDto(
-                message.getId(),
-                message.getContent(),
-                message.getChannelId(),
-                message.getAuthorId(),
-                message.getAttachmentIds(),
-                message.getCreatedAt()
-        );
-    }
-
-
 
 }
