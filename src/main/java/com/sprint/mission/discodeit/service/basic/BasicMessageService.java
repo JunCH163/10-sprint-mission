@@ -67,9 +67,9 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public MessageResponseDto update(MessageRequestUpdateDto request) {
-        Message message = validateExistenceMessage(request.id());
-        Optional.ofNullable(request.content())
+    public MessageResponseDto update(UUID messageId,MessageRequestUpdateDto request) {
+        Message message = validateExistenceMessage(messageId);
+        Optional.ofNullable(request.newContent())
                 .ifPresent(cont -> {Validators.requireNotBlank(cont, "content");
                     message.updateContent(cont);
                 });
