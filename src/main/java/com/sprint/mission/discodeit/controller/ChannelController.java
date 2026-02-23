@@ -6,6 +6,9 @@ import com.sprint.mission.discodeit.dto.channel.PrivateChannelRequestCreateDto;
 import com.sprint.mission.discodeit.dto.channel.PublicChannelRequestCreateDto;
 import com.sprint.mission.discodeit.service.ChannelService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -59,8 +62,22 @@ public class ChannelController {
     }
 
     // 4. 채널 삭제
-    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> delete(@RequestParam UUID channelId) {
+    @Operation(summary = "Channel 삭제", operationId = "delete_2")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Channel이 성공적으로 삭제됨"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Channel을 찾을 수 없음",
+                    content = @Content(examples = @ExampleObject(value = "Channel with id {channelId} not found"))
+            )
+    })
+    @DeleteMapping(value = "/{channelId}")
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "삭제할 Channel ID")
+            @PathVariable UUID channelId) {
         channelService.delete(channelId);
         return ResponseEntity.ok().build();
     }
