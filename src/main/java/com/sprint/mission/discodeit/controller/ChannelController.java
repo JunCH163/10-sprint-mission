@@ -5,6 +5,10 @@ import com.sprint.mission.discodeit.dto.channel.ChannelResponseDto;
 import com.sprint.mission.discodeit.dto.channel.PrivateChannelRequestCreateDto;
 import com.sprint.mission.discodeit.dto.channel.PublicChannelRequestCreateDto;
 import com.sprint.mission.discodeit.service.ChannelService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "Channel", description = "Channel API")
 @RestController
-@RequestMapping("/api/channel")
+@RequestMapping("/api/channels")
 public class ChannelController {
     private final ChannelService channelService;
     @Autowired
@@ -21,15 +26,26 @@ public class ChannelController {
         this.channelService = channelService;
     }
     // 1. 공개 채널 생성
-    @RequestMapping(value = "/create/public", method = RequestMethod.POST)
-    public ResponseEntity<ChannelResponseDto> createPublic(@RequestBody PublicChannelRequestCreateDto requestCreateDto) {
+    @Operation(summary = "Public Channel 생성", operationId = "create_3")
+    @ApiResponse(
+            responseCode = "201",
+            description = "Public Channel이 성공적으로 생성됨"
+    )
+    @PostMapping(value = "/public")
+    public ResponseEntity<ChannelResponseDto> createPublic(
+            @RequestBody PublicChannelRequestCreateDto requestCreateDto) {
         ChannelResponseDto crDto = channelService.createPublic(requestCreateDto);
         return ResponseEntity.ok(crDto);
     }
 
 
     // 2. 비공개 채널 생성
-    @RequestMapping(value = "/create/private", method = RequestMethod.POST)
+    @Operation(summary = "Private Channel 생성", operationId = "create_4")
+    @ApiResponse(
+            responseCode = "201",
+            description = "Private Channel이 성공적으로 생성됨."
+    )
+    @PostMapping(value = "/private")
     public ResponseEntity<ChannelResponseDto> createPrivate(@RequestBody PrivateChannelRequestCreateDto requestCreateDto) {
         ChannelResponseDto crDto = channelService.createPrivate(requestCreateDto);
         return ResponseEntity.ok(crDto);

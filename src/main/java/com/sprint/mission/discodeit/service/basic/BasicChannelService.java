@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.sprint.mission.discodeit.mapper.ChannelMapper.toDto;
+
 @Service
 @RequiredArgsConstructor
 public class BasicChannelService implements ChannelService {
@@ -29,8 +31,8 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelResponseDto createPublic(PublicChannelRequestCreateDto request) {
-        Validators.validateCreatePublicChannel(request.channelName(), request.channelDescription());
-        Channel channel = new Channel(ChannelType.PUBLIC, request.channelName(), request.channelDescription());
+        Validators.validateCreatePublicChannel(request.name(), request.description());
+        Channel channel = new Channel(ChannelType.PUBLIC, request.name(), request.description());
 
         Channel savedChannel = channelRepository.save(channel);
         return toDto(savedChannel, null);
@@ -38,8 +40,8 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelResponseDto createPrivate(PrivateChannelRequestCreateDto request) {
-        Validators.validateCreatePrivateChannel(request.joinedUserIds());
-        List<User> users = request.joinedUserIds().stream()
+        Validators.validateCreatePrivateChannel(request.participantIds());
+        List<User> users = request.participantIds().stream()
                 .map(id -> userRepository.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다: " + id)))
                 .toList();
@@ -133,19 +135,5 @@ public class BasicChannelService implements ChannelService {
     private Instant getLastMessageAt(UUID channelId) {
         return messageRepository.findLatestCreatedAtByChannelId(channelId)
                 .orElse(null);
-    }
-
-
-    public static ChannelResponseDto toDto(Channel channel, Instant lastMessageAt) {
-        List<UUID> joinedUserIds =
-                channel.getType() == ChannelType.PRIVATE ? channel.getJoinedUserIds() : null;
-        return new ChannelResponseDto(
-                channel.getId(),
-                channel.getType(),
-                channel.getChannelName(),
-                channel.getChannelDescription(),
-                lastMessageAt,
-                joinedUserIds
-        );
     }
 }

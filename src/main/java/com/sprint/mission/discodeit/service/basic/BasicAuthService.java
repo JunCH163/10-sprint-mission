@@ -10,6 +10,8 @@ import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import static com.sprint.mission.discodeit.mapper.AuthMapper.toDto;
+
 @Service
 @RequiredArgsConstructor
 public class BasicAuthService implements AuthService {
@@ -27,13 +29,5 @@ public class BasicAuthService implements AuthService {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
         return  toDto(user);
-    }
-
-    public static AuthResponseDto toDto(User user) {
-        return new AuthResponseDto(
-                user.getId(),
-                user.getUserName(),
-                "로그인에 성공하였습니다."
-        );
     }
 }
