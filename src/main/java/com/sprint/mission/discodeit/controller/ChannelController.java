@@ -1,9 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.channel.ChannelRequestUpdateDto;
-import com.sprint.mission.discodeit.dto.channel.ChannelResponseDto;
-import com.sprint.mission.discodeit.dto.channel.PrivateChannelRequestCreateDto;
-import com.sprint.mission.discodeit.dto.channel.PublicChannelRequestCreateDto;
+import com.sprint.mission.discodeit.dto.channel.*;
 import com.sprint.mission.discodeit.service.ChannelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -104,9 +101,16 @@ public class ChannelController {
     }
 
     // 5. 특정 사용자가 볼 수 있는 모든 채널 목록을 조회
-    @RequestMapping(value = "/findAllByUserId", method = RequestMethod.GET)
-    public ResponseEntity<List<ChannelResponseDto>> findAllByUserId(@RequestParam UUID id) {
-        List<ChannelResponseDto> crDto = channelService.findAllByUserId(id);
+    @Operation(summary = "User가 참여 중인 Channel 목록 조회", operationId = "findAll_1")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Channel 목록 조회 성공"
+    )
+    @GetMapping()
+    public ResponseEntity<List<ChannelParticipantResponseDto>> findAllByUserId(
+            @Parameter(description = "조회할 User ID")
+            @RequestParam UUID userId) {
+        List<ChannelParticipantResponseDto> crDto = channelService.findAllByUserId(userId);
         return ResponseEntity.ok(crDto);
     }
 

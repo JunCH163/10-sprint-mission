@@ -1,9 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.channel.PrivateChannelRequestCreateDto;
-import com.sprint.mission.discodeit.dto.channel.PublicChannelRequestCreateDto;
-import com.sprint.mission.discodeit.dto.channel.ChannelResponseDto;
-import com.sprint.mission.discodeit.dto.channel.ChannelRequestUpdateDto;
+import com.sprint.mission.discodeit.dto.channel.*;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -18,8 +15,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import static com.sprint.mission.discodeit.mapper.ChannelMapper.toDto;
+import static com.sprint.mission.discodeit.mapper.ChannelMapper.toParticipantDto;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +76,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public List<ChannelResponseDto> findAllByUserId(UUID id) {
+    public List<ChannelParticipantResponseDto> findAllByUserId(UUID id) {
         return channelRepository.findAll().stream()
                 .filter(channel -> {
                     if(channel.getType() == ChannelType.PUBLIC) {
@@ -87,7 +84,7 @@ public class BasicChannelService implements ChannelService {
                     }
                     return channel.getJoinedUserIds().contains(id);
                 })
-                .map(channel -> toDto(channel, getLastMessageAt(id)))
+                .map(channel -> toParticipantDto(channel, getLastMessageAt(channel.getId())))
                 .toList();
     }
 
