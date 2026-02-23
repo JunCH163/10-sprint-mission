@@ -4,5 +4,6 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record ReadStatusRequestCreateDto(UUID userId,
-                                         UUID channelId) {
+                                         UUID channelId,
+                                         Instant lastReadAt) {
 }

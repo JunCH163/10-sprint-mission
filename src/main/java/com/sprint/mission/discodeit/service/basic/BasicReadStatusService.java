@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusRequestCreateDto;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusResponseDto;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
+
+import static com.sprint.mission.discodeit.mapper.ReadStatusMapper.toDto;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +40,7 @@ public class BasicReadStatusService implements ReadStatusService {
             throw new IllegalArgumentException("ReadStatus가 이미 존재합니다.");
         }
 
-        ReadStatus readStatus = new ReadStatus(request.userId(), request.channelId());
+        ReadStatus readStatus = new ReadStatus(request.userId(), request.channelId(), request.lastReadAt());
         return toDto(readStatusRepository.save(readStatus));
     }
 
@@ -51,7 +54,7 @@ public class BasicReadStatusService implements ReadStatusService {
     public List<ReadStatusResponseDto> findAllByUserId(UUID id) {
        return readStatusRepository.findAll().stream()
                 .filter(rs -> rs.getUserId().equals(id))
-                .map(BasicReadStatusService::toDto)
+                .map(ReadStatusMapper::toDto)
                 .toList();
     }
 
@@ -74,15 +77,5 @@ public class BasicReadStatusService implements ReadStatusService {
         return readStatusRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ReadStatus가 존재하지 않습니다."));
 
-    }
-
-
-    public static ReadStatusResponseDto toDto(ReadStatus readStatus) {
-        return new ReadStatusResponseDto(
-                readStatus.getId(),
-                readStatus.getUserId(),
-                readStatus.getChannelId(),
-                readStatus.getLastReadAt()
-        );
     }
 }

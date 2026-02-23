@@ -57,7 +57,7 @@ public class BasicChannelService implements ChannelService {
 
         List<ReadStatus> readStatuses = users.stream()
                 .map(user -> {
-                   return new ReadStatus(user.getId(), savedChannel.getId());
+                   return new ReadStatus(user.getId(), savedChannel.getId(), Instant.now());
                 })
                 .toList();
 
