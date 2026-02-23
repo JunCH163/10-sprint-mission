@@ -80,10 +80,22 @@ public class MessageController {
     }
 
     // 3. 메시지 삭제
-    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> delete(@RequestParam UUID id) {
-        messageService.delete(id);
-        return ResponseEntity.ok().build();
+    @Operation(summary = "Message 삭제", operationId = "delete_1")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Message가 성공적으로 삭제됨"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Message를 찾을 수 없음",
+                    content = @Content(examples = @ExampleObject(value = "Message with id {messageId} not found"))
+            )
+    })
+    @DeleteMapping(value = "/{messageId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID messageId) {
+        messageService.delete(messageId);
+        return ResponseEntity.noContent().build();
     }
 
     // 4. 특정 채널의 메시지 목록 조회
