@@ -99,8 +99,15 @@ public class MessageController {
     }
 
     // 4. 특정 채널의 메시지 목록 조회
-    @RequestMapping(value = "/findByChannelId", method = RequestMethod.GET)
-    public ResponseEntity<List<MessageResponseDto>> findByChannelId(@RequestParam UUID channelId) {
+    @Operation(summary = "Channel의 Message 목록 조회", operationId = "findAllByChannelId")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Message 목록 조회 성공"
+    )
+    @GetMapping()
+    public ResponseEntity<List<MessageResponseDto>> findByChannelId(
+            @Parameter(description = "조회할 Channel ID")
+            @RequestParam UUID channelId) {
         List<MessageResponseDto> mrDto = messageService.findByChannelId(channelId);
         return ResponseEntity.ok(mrDto);
     }
