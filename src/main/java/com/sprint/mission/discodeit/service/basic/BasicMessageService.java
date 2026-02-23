@@ -122,7 +122,11 @@ public class BasicMessageService implements MessageService {
             }
 
             try {
-                BinaryContent content = new BinaryContent(file.getBytes(), file.getContentType());
+                BinaryContent content = new BinaryContent(
+                        file.getOriginalFilename(),
+                        file.getSize(),
+                        file.getBytes(),
+                        file.getContentType());
                 BinaryContent saved = binaryContentRepository.save(content);
                 attachmentIds.add(saved.getId());
             } catch (IOException e) {

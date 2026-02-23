@@ -37,22 +37,14 @@ public class BasicUserService implements UserService {
             validateDuplicationUserName(request.userName());
             validateDuplicationEmail(request.userEmail());
 
-        User user;
-        if (profileImage == null || profileImage.isEmpty()) {
-            user = new User(request.userName(), request.userEmail(), request.userPassword(), null);
-        } else {
-            try {
-                byte[] bytes = profileImage.getBytes();
-                String contentType = profileImage.getContentType();
+        UUID profileImageId = saveProfileImage(profileImage);
 
-                BinaryContent binaryContent = new BinaryContent(bytes, contentType);
-                binaryContentRepository.save(binaryContent);
-
-                user = new User(request.userName(), request.userEmail(), request.userPassword(), binaryContent.getId());
-            } catch (IOException e) {
-                throw new RuntimeException("프로필 이미지 처리 중 오류가 발생했습니다.", e);
-            }
-        }
+        User user = new User(
+                request.userName(),
+                request.userEmail(),
+                request.userPassword(),
+                profileImageId
+        );
 
         User savedUser = userRepository.save(user);
         UserStatus userStatus = new UserStatus(savedUser.getId(), Instant.now());
@@ -96,18 +88,10 @@ public class BasicUserService implements UserService {
                         user.updateUserPassword(password);
                 });
 
-        if (profileImage != null && !profileImage.isEmpty()) {
-            try {
-                byte[] bytes = profileImage.getBytes();
-                String contentType = profileImage.getContentType();
+        UUID newImageId = saveProfileImage(profileImage);
 
-                BinaryContent binaryContent = new BinaryContent(bytes, contentType);
-                binaryContentRepository.save(binaryContent);
-
-                user.updateProfileImage(binaryContent.getId());
-            } catch (IOException e) {
-                throw new RuntimeException("프로필 이미지 업데이트 중 오류가 발생했습니다.", e);
-            }
+        if (newImageId != null) {
+            user.updateProfileImage(newImageId);
         }
 
         User savedUser = userRepository.save(user);
@@ -161,6 +145,23 @@ public class BasicUserService implements UserService {
         return userStatusRepository.findByUserId(userId)
                 .map(UserStatus::isOnline)
                 .orElse(false);
+    }
+
+    private UUID saveProfileImage(MultipartFile profileImage) {
+        if (profileImage == null || profileImage.isEmpty()) {
+            return null;
+        }
+        try {
+            BinaryContent binaryContent = new BinaryContent(
+                    profileImage.getOriginalFilename(),
+                    profileImage.getSize(),
+                    profileImage.getBytes(),
+                    profileImage.getContentType()
+            );
+            return binaryContentRepository.save(binaryContent).getId();
+        } catch (IOException e) {
+            throw new RuntimeException("프로필 이미지 처리 중 오류가 발생했습니다.", e);
+        }
     }
 
 }
