@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -85,5 +86,18 @@ public class FileChannelRepository implements ChannelRepository {
     public void deleteById(UUID id) {
         data.removeIf(channel -> channel.getId().equals(id));
         saveChannels();
+    }
+
+    @Override
+    public List<Channel> findAllByVisibleToUser(UUID userId) {
+        return data.stream()
+                .filter(channel -> {
+                    if (channel.getType() == ChannelType.PUBLIC) {
+                        return true;
+                    }
+                    return channel.getJoinedUserIds() != null &&
+                            channel.getJoinedUserIds().contains(userId);
+                })
+                .toList();
     }
 }

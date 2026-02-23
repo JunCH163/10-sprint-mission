@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -53,5 +54,18 @@ public class JCFChannelRepository implements ChannelRepository {
     @Override
     public void deleteById(UUID id) {
         data.removeIf(channel -> channel.getId().equals(id));
+    }
+
+    @Override
+    public List<Channel> findAllByVisibleToUser(UUID userId) {
+        return data.stream()
+                .filter(channel -> {
+                    if (channel.getType() == ChannelType.PUBLIC) {
+                        return true;
+                    }
+                    return channel.getJoinedUserIds() != null &&
+                            channel.getJoinedUserIds().contains(userId);
+                })
+                .toList();
     }
 }

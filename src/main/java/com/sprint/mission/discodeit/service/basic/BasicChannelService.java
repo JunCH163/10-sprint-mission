@@ -77,13 +77,7 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public List<ChannelParticipantResponseDto> findAllByUserId(UUID id) {
-        return channelRepository.findAll().stream()
-                .filter(channel -> {
-                    if(channel.getType() == ChannelType.PUBLIC) {
-                        return true;
-                    }
-                    return channel.getJoinedUserIds().contains(id);
-                })
+        return channelRepository.findAllByVisibleToUser(id).stream()
                 .map(channel -> toParticipantDto(channel, getLastMessageAt(channel.getId())))
                 .toList();
     }
