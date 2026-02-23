@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @Tag(name = "ReadStatus", description = "Message 읽음 상태 API")
 @RestController
-@RequestMapping("/api/readstatuses")
+@RequestMapping("/api/readStatuses")
 public class ReadStatusController {
     private final ReadStatusService readStatusService;
 
@@ -75,9 +75,18 @@ public class ReadStatusController {
     }
 
     // 3. 특정 사용자의 메시지 수신 정보 조회
-    @RequestMapping(value = "/findAllByUserId", method = RequestMethod.GET)
-    public ResponseEntity<List<ReadStatusResponseDto>> findAllByUserId(@RequestParam UUID id) {
-       List<ReadStatusResponseDto> rsDto = readStatusService.findAllByUserId(id);
+    @Operation(summary = "User의 Message 읽음 상태 목록 조회", operationId = "findAllByUserId")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Message 읽음 상태 목록 조회 성공"
+            )
+    })
+    @GetMapping()
+    public ResponseEntity<List<ReadStatusResponseDto>> findAllByUserId(
+            @Parameter(description = "조회할 User ID")
+            @RequestParam UUID userId) {
+       List<ReadStatusResponseDto> rsDto = readStatusService.findAllByUserId(userId);
         return ResponseEntity.ok(rsDto);
     }
 
