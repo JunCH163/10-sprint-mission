@@ -21,8 +21,8 @@ public class ReadStatus extends CommonEntity implements Serializable {
         this.lastReadAt = lastReadAt;
     }
 
-    public void updateLastReadAt() {
-        this.lastReadAt = Instant.now();
+    public void updateLastReadAt(Instant newTime) {
+        this.lastReadAt = newTime;
         update();
     }
 }

@@ -73,17 +73,17 @@ public class BasicUserService implements UserService {
         Validators.requireNonNull(request, "request");
         User user = validateExistenceUser(userId);
 
-        Optional.ofNullable(request.userName())
+        Optional.ofNullable(request.newUsername())
                 .ifPresent(name -> {Validators.requireNotBlank(name, "userName");
                         validateDuplicationUserName(name);
                         user.updateUserName(name);
                 });
-        Optional.ofNullable(request.userEmail())
+        Optional.ofNullable(request.newEmail())
                 .ifPresent(email -> {Validators.requireNotBlank(email, "userEmail");
                         validateDuplicationEmail(email);
                         user.updateUserEmail(email);
                 });
-        Optional.ofNullable(request.userPassword())
+        Optional.ofNullable(request.newPassword())
                 .ifPresent(password -> {Validators.requireNotBlank(password, "userPassword");
                         user.updateUserPassword(password);
                 });

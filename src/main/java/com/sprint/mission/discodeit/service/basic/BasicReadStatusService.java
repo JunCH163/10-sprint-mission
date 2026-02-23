@@ -62,7 +62,7 @@ public class BasicReadStatusService implements ReadStatusService {
     public ReadStatusResponseDto update(UUID readStatusId, ReadStatusRequestUpdateDto request) {
         Validators.requireNonNull(request, "request");
         ReadStatus readStatus = validateExistenceReadStatus(readStatusId);
-        readStatus.updateLastReadAt();
+        readStatus.updateLastReadAt(request.newLastReadAt());
         ReadStatus savedReadStatus = readStatusRepository.save(readStatus);
         return toDto(savedReadStatus);
     }

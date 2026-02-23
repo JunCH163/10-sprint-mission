@@ -48,7 +48,7 @@ public class ChannelController {
     @PostMapping(value = "/private")
     public ResponseEntity<ChannelResponseDto> createPrivate(@RequestBody PrivateChannelRequestCreateDto requestCreateDto) {
         ChannelResponseDto crDto = channelService.createPrivate(requestCreateDto);
-        return ResponseEntity.ok(crDto);
+        return ResponseEntity.status(201).body(crDto);
     }
 
     // 3. 공개 채널 정보 수정
@@ -97,7 +97,7 @@ public class ChannelController {
             @Parameter(description = "삭제할 Channel ID")
             @PathVariable UUID channelId) {
         channelService.delete(channelId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     // 5. 특정 사용자가 볼 수 있는 모든 채널 목록을 조회
