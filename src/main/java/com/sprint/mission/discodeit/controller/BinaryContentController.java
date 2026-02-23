@@ -49,10 +49,16 @@ public class BinaryContentController {
     }
 
     // 2. 바이너리 파일 다건 조회
+    @Operation(summary = "여러 첨부 파일 조회", operationId = "findAllByIdIn")
+    @ApiResponse(
+                    responseCode = "200",
+                    description = "첨부 파일 목록 조회 성공"
+            )
     @GetMapping()
     public ResponseEntity<List<BinaryContentResponseDto>> findAllByIdIn
-    (@RequestParam List<UUID> binaryContentIds) {
-        List<BinaryContentResponseDto> bcDto = binaryContentService.findAllByIdIn(ids);
+    ( @Parameter(description = "조회할 첨부 파일 ID 목록")
+      @RequestParam List<UUID> binaryContentIds) {
+        List<BinaryContentResponseDto> bcDto = binaryContentService.findAllByIdIn(binaryContentIds);
         return ResponseEntity.ok(bcDto);
     }
 }
