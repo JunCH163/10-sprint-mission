@@ -49,11 +49,11 @@ public class MessageController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageResponseDto> create(
             @Parameter(description = "Message 생성 정보")
-            @RequestPart("messageCreateRequest") MessageRequestCreateDto messageRequestDto,
+            @RequestPart MessageRequestCreateDto messageCreateRequest,
             @Parameter(description = "Message 첨부 파일들")
             @RequestPart(value = "attachments", required = false)
             List<MultipartFile> attachments) {
-        MessageResponseDto messageResponseDto = messageService.create(messageRequestDto, attachments);
+        MessageResponseDto messageResponseDto = messageService.create(messageCreateRequest, attachments);
         return ResponseEntity.status(201).body(messageResponseDto);
     }
 
