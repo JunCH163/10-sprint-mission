@@ -18,7 +18,7 @@ public class BasicAuthService implements AuthService {
     private final UserRepository userRepository;
 
     public AuthResponseDto login(AuthLoginRequestDto request) {
-        String username = request.userName();
+        String username = request.username();
         String password = request.password();
         User user = userRepository.findAll().stream()
                 .filter(u -> username.equals(u.getUserName()))

@@ -6,7 +6,7 @@ import java.util.UUID;
 public record AuthResponseDto(UUID id,
                               Instant createdAt,
                               Instant updatedAt,
-                              String userName,
+                              String username,
                               String email,
                               String password,
                               UUID profileId) {

@@ -33,16 +33,16 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserResponseDto create(UserRequestCreateDto request, MultipartFile profileImage) {
-            Validators.validationUser(request.userName(), request.userEmail(), request.userPassword());
-            validateDuplicationUserName(request.userName());
-            validateDuplicationEmail(request.userEmail());
+            Validators.validationUser(request.username(), request.email(), request.password());
+            validateDuplicationUserName(request.username());
+            validateDuplicationEmail(request.email());
 
         UUID profileImageId = saveProfileImage(profileImage);
 
         User user = new User(
-                request.userName(),
-                request.userEmail(),
-                request.userPassword(),
+                request.username(),
+                request.email(),
+                request.password(),
                 profileImageId
         );
 
