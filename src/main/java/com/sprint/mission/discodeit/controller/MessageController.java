@@ -48,7 +48,7 @@ public class MessageController {
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageResponseDto> create(
-            @Parameter(description = "Message 생성 정보")
+            @Parameter(description = "Message 생성 정보", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             @RequestPart MessageRequestCreateDto messageCreateRequest,
             @Parameter(description = "Message 첨부 파일들")
             @RequestPart(value = "attachments", required = false)

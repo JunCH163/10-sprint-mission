@@ -53,6 +53,7 @@ public class UserController {
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponseDto> create(
+            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             @RequestPart UserRequestCreateDto userCreateRequest,
             @RequestPart(required = false)
             @Parameter(description = "User 프로필 이미지")
@@ -83,6 +84,7 @@ public class UserController {
     public ResponseEntity<UserResponseDto> update(
             @Parameter(description = "수정할 User ID")
             @PathVariable UUID userId,
+            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             @RequestPart UserRequestUpdateDto userUpdateRequest,
             @RequestPart(required = false)
             @Parameter(description = "수정할 User 프로필 이미지")
