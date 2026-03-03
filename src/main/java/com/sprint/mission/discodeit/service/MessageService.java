@@ -12,7 +12,7 @@ public interface MessageService {
     MessageResponseDto create(MessageRequestCreateDto messageRequestCreateDto, List<MultipartFile> profileImage);
     MessageResponseDto find(UUID id);
     List<MessageResponseDto> findByChannelId(UUID id);
-    MessageResponseDto update(MessageRequestUpdateDto messageRequestUpdateDto);
+    MessageResponseDto update(UUID messageId, MessageRequestUpdateDto messageRequestUpdateDto);
     void delete(UUID id);
     List<MessageResponseDto> readMessagesByUser(UUID userId);
 }

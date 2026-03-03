@@ -8,6 +8,6 @@ public record UserResponseDto(UUID id,
                               Instant updatedAt,
                               String username,
                               String email,
-                              UUID profileId,
-                              Boolean online) {
+                              String password,
+                              UUID profileId) {
 }

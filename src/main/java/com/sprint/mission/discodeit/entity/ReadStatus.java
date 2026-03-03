@@ -15,14 +15,14 @@ public class ReadStatus extends CommonEntity implements Serializable {
     private final UUID channelId;
     private Instant lastReadAt;
 
-    public ReadStatus(UUID userId, UUID channelId) {
+    public ReadStatus(UUID userId, UUID channelId, Instant lastReadAt) {
         this.userId = userId;
         this.channelId = channelId;
-        this.lastReadAt = Instant.now();
+        this.lastReadAt = lastReadAt;
     }
 
-    public void updateLastReadAt() {
-        this.lastReadAt = Instant.now();
+    public void updateLastReadAt(Instant newTime) {
+        this.lastReadAt = newTime;
         update();
     }
 }

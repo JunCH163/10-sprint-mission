@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.message.MessageRequestCreateDto;
 import com.sprint.mission.discodeit.dto.message.MessageRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.sprint.mission.discodeit.mapper.MessageMapper.toDto;
 
 @Service
 @RequiredArgsConstructor
@@ -59,14 +62,14 @@ public class BasicMessageService implements MessageService {
     public List<MessageResponseDto> findByChannelId(UUID id) {
         return messageRepository.findAll().stream()
                 .filter(m -> id.equals(m.getChannelId()))
-                .map(BasicMessageService::toDto)
+                .map(MessageMapper::toDto)
                 .toList();
     }
 
     @Override
-    public MessageResponseDto update(MessageRequestUpdateDto request) {
-        Message message = validateExistenceMessage(request.id());
-        Optional.ofNullable(request.content())
+    public MessageResponseDto update(UUID messageId,MessageRequestUpdateDto request) {
+        Message message = validateExistenceMessage(messageId);
+        Optional.ofNullable(request.newContent())
                 .ifPresent(cont -> {Validators.requireNotBlank(cont, "content");
                     message.updateContent(cont);
                 });
@@ -96,7 +99,7 @@ public class BasicMessageService implements MessageService {
     public List<MessageResponseDto> readMessagesByUser(UUID userId) {
         return messageRepository.findAll().stream()
                 .filter(m -> m.getAuthorId().equals(userId))
-                .map(BasicMessageService::toDto)
+                .map(MessageMapper::toDto)
                 .toList();
     }
 
@@ -122,7 +125,11 @@ public class BasicMessageService implements MessageService {
             }
 
             try {
-                BinaryContent content = new BinaryContent(file.getBytes(), file.getContentType());
+                BinaryContent content = new BinaryContent(
+                        file.getOriginalFilename(),
+                        file.getSize(),
+                        file.getBytes(),
+                        file.getContentType());
                 BinaryContent saved = binaryContentRepository.save(content);
                 attachmentIds.add(saved.getId());
             } catch (IOException e) {
@@ -131,18 +138,5 @@ public class BasicMessageService implements MessageService {
         }
         return attachmentIds;
     }
-
-    public static MessageResponseDto toDto(Message message) {
-        return new MessageResponseDto(
-                message.getId(),
-                message.getContent(),
-                message.getChannelId(),
-                message.getAuthorId(),
-                message.getAttachmentIds(),
-                message.getCreatedAt()
-        );
-    }
-
-
 
 }

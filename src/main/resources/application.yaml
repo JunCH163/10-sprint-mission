@@ -2,3 +2,13 @@ discodeit:
   repository:
     type: file
     file-directory: .discodeit
+
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+server:
+  error:
+    include-message: always
+    include-binding-errors: always

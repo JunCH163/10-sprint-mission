@@ -26,7 +26,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     public FileBinaryContentRepository(
             @Value("${discodeit.repository.file-directory:.discodeit}") String dir
     ) {
-        this.filePath = Paths.get(dir,  FILE_NAME);
+        this.filePath = Paths.get(dir, FILE_NAME);
         this.data = loadBinaryContents();
     }
 

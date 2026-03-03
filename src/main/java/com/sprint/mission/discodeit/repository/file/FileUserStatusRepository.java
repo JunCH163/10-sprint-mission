@@ -87,4 +87,11 @@ public class FileUserStatusRepository implements UserStatusRepository {
         data.removeIf(us -> us.getId().equals(id));
         saveUserStatus();
     }
+
+    @Override
+    public Optional<UserStatus> findByUserId(UUID userId) {
+        return data.stream()
+                .filter(us -> us.getUserId().equals(userId))
+                .findFirst();
+    }
 }

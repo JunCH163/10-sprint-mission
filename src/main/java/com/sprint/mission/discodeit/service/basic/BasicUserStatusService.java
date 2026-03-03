@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestCreateDto;
+import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestOnlineUpdateDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusResponseDto;
 import com.sprint.mission.discodeit.entity.ReadStatus;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+
+import static com.sprint.mission.discodeit.mapper.UserStatusMapper.toDto;
 
 @Service
 @RequiredArgsConstructor
@@ -62,14 +65,14 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public void updateByUserId(UUID userid) {
+    public void updateByUserId(UUID userid, UserStatusRequestOnlineUpdateDto request) {
         Validators.requireNonNull(userid, "userid는 null이 될 수 없습니다.");
         UserStatus status = userStatusRepository.findAll().stream()
                 .filter(s -> s.getUserId().equals(userid))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저의 상태 정보를 찾을 수 없습니다."));
 
-        status.updateLastSeenAt();
+        status.setLastSeenAt(request.newLastActiveAt());
         userStatusRepository.save(status);
     }
 
@@ -86,12 +89,4 @@ public class BasicUserStatusService implements UserStatusService {
 
     }
 
-    public static UserStatusResponseDto toDto(UserStatus userStatus, Boolean online) {
-        return new UserStatusResponseDto(
-                userStatus.getId(),
-                userStatus.getUserId(),
-                userStatus.getLastSeenAt(),
-                online
-        );
-    }
 }

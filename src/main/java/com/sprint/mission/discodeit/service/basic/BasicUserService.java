@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.user.UserRequestCreateDto;
 import com.sprint.mission.discodeit.dto.user.UserRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.user.UserResponseDto;
+import com.sprint.mission.discodeit.dto.user.UserResponseGetDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
@@ -9,7 +10,6 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.sprint.mission.discodeit.mapper.UserMapper.toCreateDto;
+import static com.sprint.mission.discodeit.mapper.UserMapper.toDto;
+
 @Service
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
@@ -30,36 +33,27 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserResponseDto create(UserRequestCreateDto request, MultipartFile profileImage) {
-            Validators.validationUser(request.userName(), request.userEmail(), request.userPassword());
-            validateDuplicationUserName(request.userName());
-            validateDuplicationEmail(request.userEmail());
-            validateDuplicationUserPassword(request.userPassword());
+            Validators.validationUser(request.username(), request.email(), request.password());
+            validateDuplicationUserName(request.username());
+            validateDuplicationEmail(request.email());
 
-        User user;
-        if (profileImage == null || profileImage.isEmpty()) {
-            user = new User(request.userName(), request.userEmail(), request.userPassword(), null);
-        } else {
-            try {
-                byte[] bytes = profileImage.getBytes();
-                String contentType = profileImage.getContentType();
+        UUID profileImageId = saveProfileImage(profileImage);
 
-                BinaryContent binaryContent = new BinaryContent(bytes, contentType);
-                binaryContentRepository.save(binaryContent);
-
-                user = new User(request.userName(), request.userEmail(), request.userPassword(), binaryContent.getId());
-            } catch (IOException e) {
-                throw new RuntimeException("프로필 이미지 처리 중 오류가 발생했습니다.", e);
-            }
-        }
+        User user = new User(
+                request.username(),
+                request.email(),
+                request.password(),
+                profileImageId
+        );
 
         User savedUser = userRepository.save(user);
         UserStatus userStatus = new UserStatus(savedUser.getId(), Instant.now());
         userStatusRepository.save(userStatus);
-        return toDto(savedUser, userStatus.isOnline());
+        return toCreateDto(savedUser);
     }
 
     @Override
-    public UserResponseDto find(UUID id) {
+    public UserResponseGetDto find(UUID id) {
         User user = validateExistenceUser(id);
         boolean online = resolveOnline(id);
         return toDto(user, online);
@@ -68,50 +62,40 @@ public class BasicUserService implements UserService {
 
 
     @Override
-    public List<UserResponseDto> findAll() {
+    public List<UserResponseGetDto> findAll() {
         return userRepository.findAll().stream()
                 .map(u -> toDto(u, resolveOnline(u.getId())))
                 .toList();
     }
 
     @Override
-    public UserResponseDto update(UserRequestUpdateDto request, MultipartFile profileImage) {
+    public UserResponseDto update(UUID userId, UserRequestUpdateDto request, MultipartFile profileImage) {
         Validators.requireNonNull(request, "request");
-        User user = validateExistenceUser(request.id());
+        User user = validateExistenceUser(userId);
 
-        Optional.ofNullable(request.userName())
+        Optional.ofNullable(request.newUsername())
                 .ifPresent(name -> {Validators.requireNotBlank(name, "userName");
                         validateDuplicationUserName(name);
                         user.updateUserName(name);
                 });
-        Optional.ofNullable(request.userEmail())
+        Optional.ofNullable(request.newEmail())
                 .ifPresent(email -> {Validators.requireNotBlank(email, "userEmail");
                         validateDuplicationEmail(email);
                         user.updateUserEmail(email);
                 });
-        Optional.ofNullable(request.userPassword())
+        Optional.ofNullable(request.newPassword())
                 .ifPresent(password -> {Validators.requireNotBlank(password, "userPassword");
-                        validateDuplicationUserPassword(password);
                         user.updateUserPassword(password);
                 });
 
-        if (profileImage != null && !profileImage.isEmpty()) {
-            try {
-                byte[] bytes = profileImage.getBytes();
-                String contentType = profileImage.getContentType();
+        UUID newImageId = saveProfileImage(profileImage);
 
-                BinaryContent binaryContent = new BinaryContent(bytes, contentType);
-                binaryContentRepository.save(binaryContent);
-
-                user.updateProfileImage(binaryContent.getId());
-            } catch (IOException e) {
-                throw new RuntimeException("프로필 이미지 업데이트 중 오류가 발생했습니다.", e);
-            }
+        if (newImageId != null) {
+            user.updateProfileImage(newImageId);
         }
 
         User savedUser = userRepository.save(user);
-        boolean online = resolveOnline(savedUser.getId());
-        return toDto(savedUser, online);
+        return toCreateDto(savedUser);
     }
 
     @Override
@@ -127,7 +111,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public List<UserResponseDto> findUsersByChannel(UUID channelId) {
+    public List<UserResponseGetDto> findUsersByChannel(UUID channelId) {
         return userRepository.findAll().stream()
                 .filter(user -> user.getJoinedChannelIds().contains(channelId))
                 .map(u -> toDto(u, resolveOnline(u.getId())))
@@ -150,15 +134,6 @@ public class BasicUserService implements UserService {
         }
     }
 
-    private void validateDuplicationUserPassword(String userPassword) {
-        if(userRepository.findAll().stream()
-                .anyMatch(user -> userPassword.equals(user.getUserPassword())))
-        {
-            throw new IllegalArgumentException("이미 존재하는 비밀번호입니다.");
-        }
-    }
-
-
     private User validateExistenceUser(UUID id) {
         Validators.requireNonNull(id, "id는 null이 될 수 없습니다.");
         return userRepository.findById(id)
@@ -166,24 +141,27 @@ public class BasicUserService implements UserService {
 
     }
 
-    public static UserResponseDto toDto(User user, Boolean online) {
-        return new UserResponseDto(
-                user.getId(),
-                user.getCreatedAt(),
-                user.getUpdatedAt(),
-                user.getUserName(),
-                user.getUserEmail(),
-                user.getProfileId(),
-                online
-        );
-    }
-
     private boolean resolveOnline(UUID userId) {
-        return userStatusRepository.findAll().stream()
-                .filter(us -> userId.equals(us.getUserId()))
-                .findFirst()
+        return userStatusRepository.findByUserId(userId)
                 .map(UserStatus::isOnline)
                 .orElse(false);
+    }
+
+    private UUID saveProfileImage(MultipartFile profileImage) {
+        if (profileImage == null || profileImage.isEmpty()) {
+            return null;
+        }
+        try {
+            BinaryContent binaryContent = new BinaryContent(
+                    profileImage.getOriginalFilename(),
+                    profileImage.getSize(),
+                    profileImage.getBytes(),
+                    profileImage.getContentType()
+            );
+            return binaryContentRepository.save(binaryContent).getId();
+        } catch (IOException e) {
+            throw new RuntimeException("프로필 이미지 처리 중 오류가 발생했습니다.", e);
+        }
     }
 
 }

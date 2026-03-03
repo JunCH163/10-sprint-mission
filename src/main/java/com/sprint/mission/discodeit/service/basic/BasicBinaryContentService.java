@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentRequestCreateDto;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentResponseDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.util.Validators;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+
+import static com.sprint.mission.discodeit.mapper.BinaryContentMapper.toDto;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +26,14 @@ public class BasicBinaryContentService implements BinaryContentService {
         Validators.requireNonNull(request, "request");
         validateBinaryContent(request.bytes(), request.contentType());
 
-        BinaryContent binaryContent = new BinaryContent(request.bytes(), request.contentType());
+        long fileSize = request.bytes().length;
+
+        BinaryContent binaryContent = new BinaryContent(
+                request.fileName(),
+                fileSize,
+                request.bytes(),
+                request.contentType()
+        );
         return toDto(binaryContentRepository.save(binaryContent));
     }
 
@@ -38,7 +48,7 @@ public class BasicBinaryContentService implements BinaryContentService {
         Validators.requireNonNull(ids, "ids");
         return binaryContentRepository.findAll().stream()
                 .filter(binaryContent -> ids.contains(binaryContent.getId()))
-                .map(BasicBinaryContentService::toDto)
+                .map(BinaryContentMapper::toDto)
                 .toList();
     }
 
@@ -63,12 +73,5 @@ public class BasicBinaryContentService implements BinaryContentService {
         return binaryContentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("BinaryContent가 존재하지 않습니다."));
 
-    }
-
-    public static BinaryContentResponseDto toDto(BinaryContent binaryContent) {
-        return new BinaryContentResponseDto(
-                binaryContent.getData(),
-                binaryContent.getContentType()
-        );
     }
 }

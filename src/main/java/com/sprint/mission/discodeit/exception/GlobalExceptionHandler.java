@@ -16,6 +16,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<String> handleNullPointerException(NullPointerException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleNoSuchElementException(NoSuchElementException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("서버 내부 오류가 발생했습니다.");
+    }
+
+
 }
