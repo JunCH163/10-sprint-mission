@@ -13,6 +13,7 @@ import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import static com.sprint.mission.discodeit.mapper.ChannelMapper.toDto;
 import static com.sprint.mission.discodeit.mapper.ChannelMapper.toParticipantDto;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class BasicChannelService implements ChannelService {
@@ -29,6 +31,7 @@ public class BasicChannelService implements ChannelService {
     private final ReadStatusRepository readStatusRepository;
     private final MessageRepository messageRepository;
 
+    @Transactional
     @Override
     public ChannelResponseDto createPublic(PublicChannelRequestCreateDto request) {
         Validators.validateCreatePublicChannel(request.name(), request.description());
@@ -38,29 +41,23 @@ public class BasicChannelService implements ChannelService {
         return toDto(savedChannel, null);
     }
 
+    @Transactional
     @Override
     public ChannelResponseDto createPrivate(PrivateChannelRequestCreateDto request) {
         Validators.validateCreatePrivateChannel(request.participantIds());
-        List<User> users = request.participantIds().stream()
-                .map(id -> userRepository.findById(id)
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다: " + id)))
-                .toList();
 
+        List<User> users = userRepository.findAllById(request.participantIds());
 
+        if (users.size() != request.participantIds().size()) {
+            throw new IllegalArgumentException("존재하지 않는 유저가 포함되어 있습니다.");
+        }
 
         Channel channel = new Channel(ChannelType.PRIVATE, null, null);
-
-        channel.getJoinedUserIds().addAll(
-                users.stream()
-                        .map(User :: getId)
-                        .toList()
-        );
-
         Channel savedChannel = channelRepository.save(channel);
 
         List<ReadStatus> readStatuses = users.stream()
                 .map(user -> {
-                   return new ReadStatus(user.getId(), savedChannel.getId(), Instant.now());
+                   return new ReadStatus(user, savedChannel, Instant.now());
                 })
                 .toList();
 
@@ -78,13 +75,15 @@ public class BasicChannelService implements ChannelService {
         return toDto(channel, lastMessageAt);
     }
 
+    // TODO: N+1 해결할 것
     @Override
     public List<ChannelParticipantResponseDto> findAllByUserId(UUID id) {
-        return channelRepository.findAllByVisibleToUser(id).stream()
+        return channelRepository.findChannelsByUserId(id).stream()
                 .map(channel -> toParticipantDto(channel, getLastMessageAt(channel.getId())))
                 .toList();
     }
 
+    @Transactional
     @Override
     public ChannelResponseDto updateChannel(UUID channelId, ChannelRequestUpdateDto request) {
         Validators.requireNonNull(request, "request");
@@ -103,19 +102,17 @@ public class BasicChannelService implements ChannelService {
             channel.updateChannelDescription(des);
         });
 
-        Channel savedChannel = channelRepository.save(channel);
 
-        return toDto(savedChannel, getLastMessageAt(savedChannel.getId()));
+
+        return toDto(channel, getLastMessageAt(channel.getId()));
     }
 
 
 
     @Override
     public void delete(UUID id) {
-        validateExistenceChannel(id);
-        messageRepository.deleteAllByChannelId(id);
-        readStatusRepository.deleteAllByChannelId(id);
-        channelRepository.deleteById(id);
+        Channel channel = validateExistenceChannel(id);
+        channelRepository.delete(channel);
     }
 
 

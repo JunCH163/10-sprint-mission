@@ -1,19 +1,19 @@
 package com.sprint.mission.discodeit.repository;
 
 import com.sprint.mission.discodeit.entity.base.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-public interface UserRepository {
+public interface UserRepository extends JpaRepository<User, UUID> {
 
-    User save(User user);
+    boolean existsByEmail(String userEmail);
 
-    Optional<User> findById(UUID id);
+    boolean existsByUsername(String username);
 
-    List<User> findAll();
-
-    void deleteById(UUID id);
-
+    @Query("SELECT r.user FROM ReadStatus r WHERE r.channel.id = :channelId")
+    List<User> findUsersByChannelId(@Param("channelId") UUID channelId);
 }

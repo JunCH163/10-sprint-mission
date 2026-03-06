@@ -16,6 +16,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.util.UUID;
 
 import static com.sprint.mission.discodeit.mapper.MessageMapper.toDto;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class BasicMessageService implements MessageService {
@@ -34,25 +36,25 @@ public class BasicMessageService implements MessageService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
 
+    @Transactional
     @Override
     public MessageResponseDto create(MessageRequestCreateDto request, List<MultipartFile> attachments) {
         Validators.validateCreateMessageRequest(request);
-        User user = userRepository.findById(request.authorId())
+
+        User author = userRepository.findById(request.authorId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+
         Channel channel = channelRepository.findById(request.channelId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
 
         Validators.validationMessage(request.content());
 
-        List<UUID> attachmentIds = storeAttachments(attachments);
+        List<BinaryContent> attachmentFiles = storeAttachments(attachments);
 
-        Message message = new Message(request.content(), request.authorId(), request.channelId(), attachmentIds);
+        Message message = new Message(request.content(), channel, author, attachmentFiles);
 
-        channel.getMessageIds().add(message.getId());
-        user.getMessageIds().add(message.getId());
-        channelRepository.save(channel);
-        userRepository.save(user);
-        return toDto(messageRepository.save(message));
+        Message savedMessage = messageRepository.save(message);
+        return toDto(savedMessage);
     }
 
     @Override
@@ -63,45 +65,33 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public List<MessageResponseDto> findByChannelId(UUID id) {
-        return messageRepository.findAll().stream()
-                .filter(m -> id.equals(m.getChannelId()))
+        return messageRepository.findAllByChannelId(id).stream()
                 .map(MessageMapper::toDto)
                 .toList();
     }
 
+    @Transactional
     @Override
     public MessageResponseDto update(UUID messageId,MessageRequestUpdateDto request) {
         Message message = validateExistenceMessage(messageId);
+
         Optional.ofNullable(request.newContent())
                 .ifPresent(cont -> {Validators.requireNotBlank(cont, "content");
                     message.updateContent(cont);
                 });
 
-        return toDto(messageRepository.save(message));
+        return toDto(message);
     }
 
+    @Transactional
     public void delete(UUID messageId) {
         Message message = validateExistenceMessage(messageId);
-        UUID channelId = message.getChannelId();
-        UUID authorId = message.getAuthorId();
 
-        Channel channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("채널 id가 존재하지 않습니다."));
-        User user = userRepository.findById(authorId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 id가 존재하지 않습니다."));
-
-        for (UUID attachmentId : message.getAttachmentIds()) {
-            binaryContentRepository.deleteById(attachmentId);
-        }
-
-        channel.getMessageIds().remove(messageId);
-        user.getMessageIds().remove(messageId);
-        messageRepository.deleteById(messageId);
+        messageRepository.delete(message);
     }
 
     public List<MessageResponseDto> readMessagesByUser(UUID userId) {
-        return messageRepository.findAll().stream()
-                .filter(m -> m.getAuthorId().equals(userId))
+        return messageRepository.findAllByAuthorId(userId).stream()
                 .map(MessageMapper::toDto)
                 .toList();
     }
@@ -112,10 +102,10 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() -> new IllegalArgumentException("메세지 id는 존재하지 않습니다."));
     }
 
-    private List<UUID> storeAttachments(List<MultipartFile> attachments) {
-        List<UUID> attachmentIds = new ArrayList<>();
+    private List<BinaryContent> storeAttachments(List<MultipartFile> attachments) {
+        List<BinaryContent> attachmentFiles = new ArrayList<>();
         if (attachments == null || attachments.isEmpty()) {
-            return attachmentIds;
+            return attachmentFiles;
         }
 
         for (MultipartFile file : attachments) {
@@ -134,12 +124,12 @@ public class BasicMessageService implements MessageService {
                         file.getBytes(),
                         file.getContentType());
                 BinaryContent saved = binaryContentRepository.save(content);
-                attachmentIds.add(saved.getId());
+                attachmentFiles.add(saved);
             } catch (IOException e) {
                 throw new RuntimeException("첨부파일 처리 중 오류가 발생했습니다.", e);
             }
         }
-        return attachmentIds;
+        return attachmentFiles;
     }
 
 }

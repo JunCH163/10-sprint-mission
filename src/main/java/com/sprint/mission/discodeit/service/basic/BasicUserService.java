@@ -13,6 +13,7 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.util.UUID;
 import static com.sprint.mission.discodeit.mapper.UserMapper.toCreateDto;
 import static com.sprint.mission.discodeit.mapper.UserMapper.toDto;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
@@ -31,24 +33,26 @@ public class BasicUserService implements UserService {
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
 
+    @Transactional
     @Override
     public UserResponseDto create(UserRequestCreateDto request, MultipartFile profileImage) {
             Validators.validationUser(request.username(), request.email(), request.password());
             validateDuplicationUserName(request.username());
             validateDuplicationEmail(request.email());
 
-        UUID profileImageId = saveProfileImage(profileImage);
+        BinaryContent profile = saveProfileImage(profileImage);
 
         User user = new User(
                 request.username(),
                 request.email(),
                 request.password(),
-                profileImageId
+                profile
         );
 
+        UserStatus userStatus = new UserStatus(Instant.now());
+        user.setStatus(userStatus);
+
         User savedUser = userRepository.save(user);
-        UserStatus userStatus = new UserStatus(savedUser.getId(), Instant.now());
-        userStatusRepository.save(userStatus);
         return toCreateDto(savedUser);
     }
 
@@ -61,6 +65,7 @@ public class BasicUserService implements UserService {
 
 
 
+    // TODO: N+1 해결할 것
     @Override
     public List<UserResponseGetDto> findAll() {
         return userRepository.findAll().stream()
@@ -68,6 +73,7 @@ public class BasicUserService implements UserService {
                 .toList();
     }
 
+    @Transactional
     @Override
     public UserResponseDto update(UUID userId, UserRequestUpdateDto request, MultipartFile profileImage) {
         Validators.requireNonNull(request, "request");
@@ -88,47 +94,44 @@ public class BasicUserService implements UserService {
                         user.updatePassword(password);
                 });
 
-        UUID newImageId = saveProfileImage(profileImage);
+        BinaryContent newProfile = saveProfileImage(profileImage);
 
-        if (newImageId != null) {
-            user.updateProfile(newImageId);
+        if (newProfile != null) {
+            user.updateProfile(newProfile);
         }
 
-        User savedUser = userRepository.save(user);
-        return toCreateDto(savedUser);
+        return toCreateDto(user);
     }
 
+    @Transactional
     @Override
     public void delete(UUID userId) {
         User user = validateExistenceUser(userId);
-        UUID profileId = user.getProfileId();
-        if(profileId != null) {
-            binaryContentRepository.deleteById(profileId);
+
+        BinaryContent profile = user.getProfile();
+        if(profile != null) {
+            binaryContentRepository.delete(profile);
         }
 
-        userStatusRepository.deleteById(userId);
-        userRepository.deleteById(userId);
+        userRepository.delete(user);
     }
 
     @Override
     public List<UserResponseGetDto> findUsersByChannel(UUID channelId) {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getJoinedChannelIds().contains(channelId))
+        return userRepository.findUsersByChannelId(channelId).stream()
                 .map(u -> toDto(u, resolveOnline(u.getId())))
                 .toList();
     }
 
     private void validateDuplicationEmail(String userEmail) {
-        if(userRepository.findAll().stream()
-                .anyMatch(user -> userEmail.equals(user.getEmail())))
+        if(userRepository.existsByEmail(userEmail))
         {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
     }
 
     private void validateDuplicationUserName(String userName) {
-        if(userRepository.findAll().stream()
-        .anyMatch(user -> userName.equals(user.getUsername())))
+        if(userRepository.existsByUsername(userName))
         {
             throw new IllegalArgumentException("이미 존재하는 이름입니다.");
         }
@@ -147,7 +150,7 @@ public class BasicUserService implements UserService {
                 .orElse(false);
     }
 
-    private UUID saveProfileImage(MultipartFile profileImage) {
+    private BinaryContent saveProfileImage(MultipartFile profileImage) {
         if (profileImage == null || profileImage.isEmpty()) {
             return null;
         }
@@ -158,7 +161,7 @@ public class BasicUserService implements UserService {
                     profileImage.getBytes(),
                     profileImage.getContentType()
             );
-            return binaryContentRepository.save(binaryContent).getId();
+            return binaryContentRepository.save(binaryContent);
         } catch (IOException e) {
             throw new RuntimeException("프로필 이미지 처리 중 오류가 발생했습니다.", e);
         }
