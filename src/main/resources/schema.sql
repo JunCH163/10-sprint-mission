@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS read_statuses (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     channel_id UUID NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
     last_read_at TIMESTAMPTZ NOT NULL,
-    UNIQUE (user_id, channel_id)
+    CONSTRAINT uk_user_channel UNIQUE (user_id, channel_id)
 );
 
 CREATE TABLE IF NOT EXISTS messages (

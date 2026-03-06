@@ -2,8 +2,8 @@ package com.sprint.mission.discodeit.mapper;
 
 import com.sprint.mission.discodeit.dto.channel.ChannelParticipantResponseDto;
 import com.sprint.mission.discodeit.dto.channel.ChannelResponseDto;
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.base.Channel;
+import com.sprint.mission.discodeit.entity.base.ChannelType;
 
 import java.time.Instant;
 import java.util.List;
@@ -18,8 +18,8 @@ public class ChannelMapper {
                 channel.getCreatedAt(),
                 channel.getUpdatedAt(),
                 channel.getType(),
-                channel.getChannelName(),
-                channel.getChannelDescription()
+                channel.getName(),
+                channel.getDescription()
         );
     }
 
@@ -30,8 +30,8 @@ public class ChannelMapper {
         return new ChannelParticipantResponseDto(
                     channel.getId(),
                     channel.getType(),
-                    channel.getChannelName(),
-                    channel.getChannelDescription(),
+                    channel.getName(),
+                    channel.getDescription(),
                     ids,
                     lastMessageAt
         );

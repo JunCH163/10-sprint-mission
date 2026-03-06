@@ -1,10 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentResponseDto;
 import com.sprint.mission.discodeit.dto.auth.AuthLoginRequestDto;
 import com.sprint.mission.discodeit.dto.auth.AuthResponseDto;
-import com.sprint.mission.discodeit.entity.BinaryContent;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.base.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +19,11 @@ public class BasicAuthService implements AuthService {
         String username = request.username();
         String password = request.password();
         User user = userRepository.findAll().stream()
-                .filter(u -> username.equals(u.getUserName()))
+                .filter(u -> username.equals(u.getUsername()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
-        if (!password.equals(user.getUserPassword())) {
+        if (!password.equals(user.getPassword())) {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
         return  toDto(user);

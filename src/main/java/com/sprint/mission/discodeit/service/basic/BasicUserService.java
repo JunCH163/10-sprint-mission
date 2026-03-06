@@ -3,9 +3,9 @@ import com.sprint.mission.discodeit.dto.user.UserRequestCreateDto;
 import com.sprint.mission.discodeit.dto.user.UserRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.user.UserResponseDto;
 import com.sprint.mission.discodeit.dto.user.UserResponseGetDto;
-import com.sprint.mission.discodeit.entity.BinaryContent;
-import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.entity.base.BinaryContent;
+import com.sprint.mission.discodeit.entity.base.User;
+import com.sprint.mission.discodeit.entity.base.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -81,17 +81,17 @@ public class BasicUserService implements UserService {
         Optional.ofNullable(request.newEmail())
                 .ifPresent(email -> {Validators.requireNotBlank(email, "userEmail");
                         validateDuplicationEmail(email);
-                        user.updateUserEmail(email);
+                        user.updateEmail(email);
                 });
         Optional.ofNullable(request.newPassword())
                 .ifPresent(password -> {Validators.requireNotBlank(password, "userPassword");
-                        user.updateUserPassword(password);
+                        user.updatePassword(password);
                 });
 
         UUID newImageId = saveProfileImage(profileImage);
 
         if (newImageId != null) {
-            user.updateProfileImage(newImageId);
+            user.updateProfile(newImageId);
         }
 
         User savedUser = userRepository.save(user);
@@ -120,7 +120,7 @@ public class BasicUserService implements UserService {
 
     private void validateDuplicationEmail(String userEmail) {
         if(userRepository.findAll().stream()
-                .anyMatch(user -> userEmail.equals(user.getUserEmail())))
+                .anyMatch(user -> userEmail.equals(user.getEmail())))
         {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
@@ -128,7 +128,7 @@ public class BasicUserService implements UserService {
 
     private void validateDuplicationUserName(String userName) {
         if(userRepository.findAll().stream()
-        .anyMatch(user -> userName.equals(user.getUserName())))
+        .anyMatch(user -> userName.equals(user.getUsername())))
         {
             throw new IllegalArgumentException("이미 존재하는 이름입니다.");
         }

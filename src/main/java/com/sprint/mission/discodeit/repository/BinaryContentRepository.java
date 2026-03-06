@@ -1,8 +1,7 @@
 package com.sprint.mission.discodeit.repository;
 
 
-import com.sprint.mission.discodeit.entity.BinaryContent;
-import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.base.BinaryContent;
 
 import java.util.List;
 import java.util.Optional;

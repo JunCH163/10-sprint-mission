@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.mapper;
 
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusResponseDto;
-import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.entity.base.UserStatus;
 
 public class UserStatusMapper {
 
@@ -11,7 +11,7 @@ public class UserStatusMapper {
                 userStatus.getCreatedAt(),
                 userStatus.getUpdatedAt(),
                 userStatus.getUserId(),
-                userStatus.getLastSeenAt(),
+                userStatus.getLastActiveAt(),
                 online
         );
     }

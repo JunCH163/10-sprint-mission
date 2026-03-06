@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.mapper;
 
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.base.Message;
 
 public class MessageMapper {
     public static MessageResponseDto toDto(Message message) {

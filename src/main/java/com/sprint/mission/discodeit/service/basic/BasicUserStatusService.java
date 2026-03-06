@@ -4,9 +4,7 @@ import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestCreateDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestOnlineUpdateDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusResponseDto;
-import com.sprint.mission.discodeit.entity.ReadStatus;
-import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.entity.base.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -60,7 +58,7 @@ public class BasicUserStatusService implements UserStatusService {
     public void update(UserStatusRequestUpdateDto request) {
         Validators.requireNonNull(request, "request");
         UserStatus userStatus = validateExistenceUserStatus(request.id());
-        userStatus.updateLastSeenAt();
+        userStatus.updateLastActiveAt();
         userStatusRepository.save(userStatus);
     }
 
@@ -72,7 +70,7 @@ public class BasicUserStatusService implements UserStatusService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저의 상태 정보를 찾을 수 없습니다."));
 
-        status.setLastSeenAt(request.newLastActiveAt());
+        status.setLastActiveAt(request.newLastActiveAt());
         userStatusRepository.save(status);
     }
 

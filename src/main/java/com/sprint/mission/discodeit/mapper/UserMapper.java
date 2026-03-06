@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit.mapper;
 
 import com.sprint.mission.discodeit.dto.user.UserResponseDto;
 import com.sprint.mission.discodeit.dto.user.UserResponseGetDto;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.base.User;
 
 public class UserMapper {
 
@@ -11,8 +11,8 @@ public class UserMapper {
                 user.getId(),
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
-                user.getUserName(),
-                user.getUserEmail(),
+                user.getUsername(),
+                user.getEmail(),
                 user.getProfileId(),
                 online
         );
@@ -23,9 +23,9 @@ public class UserMapper {
                 user.getId(),
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
-                user.getUserName(),
-                user.getUserEmail(),
-                user.getUserPassword(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPassword(),
                 user.getProfileId()
         );
     }
