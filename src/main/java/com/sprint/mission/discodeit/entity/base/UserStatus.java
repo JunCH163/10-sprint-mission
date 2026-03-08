@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 
@@ -27,6 +28,10 @@ public class UserStatus extends BaseUpdatableEntity {
     public boolean isOnline() {
         return lastActiveAt != null &&
                 lastActiveAt.isAfter(Instant.now().minusSeconds(5 * 60));
+    }
+
+    public void updateLastActiveAt(Instant newTime) {
+        this.lastActiveAt = newTime;
     }
 
     public void updateLastActiveAt() {

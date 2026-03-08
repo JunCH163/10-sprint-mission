@@ -7,20 +7,24 @@ import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.util.Validators;
+import com.sun.source.tree.BinaryTree;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 import static com.sprint.mission.discodeit.mapper.BinaryContentMapper.toDto;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class BasicBinaryContentService implements BinaryContentService {
 
     private final BinaryContentRepository binaryContentRepository;
 
+    @Transactional
     @Override
     public BinaryContentResponseDto create(BinaryContentRequestCreateDto request) {
         Validators.requireNonNull(request, "request");
@@ -34,7 +38,9 @@ public class BasicBinaryContentService implements BinaryContentService {
                 request.bytes(),
                 request.contentType()
         );
-        return toDto(binaryContentRepository.save(binaryContent));
+
+        BinaryContent savedBinaryContent = binaryContentRepository.save(binaryContent);
+        return toDto(savedBinaryContent);
     }
 
     @Override
@@ -46,16 +52,16 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public List<BinaryContentResponseDto> findAllByIdIn(List<UUID> ids) {
         Validators.requireNonNull(ids, "ids");
-        return binaryContentRepository.findAll().stream()
-                .filter(binaryContent -> ids.contains(binaryContent.getId()))
+        return binaryContentRepository.findAllById(ids).stream()
                 .map(BinaryContentMapper::toDto)
                 .toList();
     }
 
+    @Transactional
     @Override
     public void delete(UUID id) {
-        validateExistenceBinaryContent(id);
-        binaryContentRepository.deleteById(id);
+        BinaryContent binaryContent = validateExistenceBinaryContent(id);
+        binaryContentRepository.delete(binaryContent);
     }
 
 
