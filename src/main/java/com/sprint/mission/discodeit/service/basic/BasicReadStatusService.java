@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusRequestCreateDto;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusRequestUpdateDto;
-import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusResponseDto;
+import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusDto;
 import com.sprint.mission.discodeit.entity.base.Channel;
 import com.sprint.mission.discodeit.entity.base.ReadStatus;
 import com.sprint.mission.discodeit.entity.base.User;
@@ -19,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
-import static com.sprint.mission.discodeit.mapper.ReadStatusMapper.toDto;
-
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
@@ -29,9 +27,11 @@ public class BasicReadStatusService implements ReadStatusService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
 
+    private final ReadStatusMapper readStatusMapper;
+
     @Transactional
     @Override
-    public ReadStatusResponseDto create(ReadStatusRequestCreateDto request) {
+    public ReadStatusDto create(ReadStatusRequestCreateDto request) {
         Validators.validateCreateReadStatusRequest(request);
 
         Channel channel = channelRepository.findById(request.channelId())
@@ -48,30 +48,30 @@ public class BasicReadStatusService implements ReadStatusService {
 
         ReadStatus readStatus = new ReadStatus(user, channel, request.lastReadAt());
         ReadStatus savedReadStatus = readStatusRepository.save(readStatus);
-        return toDto(savedReadStatus);
+        return readStatusMapper.toDto(savedReadStatus);
     }
 
     @Override
-    public ReadStatusResponseDto find(UUID id) {
+    public ReadStatusDto find(UUID id) {
         ReadStatus readStatus = validateExistenceReadStatus(id);
-        return toDto(readStatus);
+        return readStatusMapper.toDto(readStatus);
     }
 
     @Override
-    public List<ReadStatusResponseDto> findAllByUserId(UUID id) {
+    public List<ReadStatusDto> findAllByUserId(UUID id) {
        return readStatusRepository.findAllByUser_Id(id).stream()
-                .map(ReadStatusMapper::toDto)
+                .map(readStatusMapper::toDto)
                 .toList();
     }
 
     @Transactional
     @Override
-    public ReadStatusResponseDto update(UUID readStatusId, ReadStatusRequestUpdateDto request) {
+    public ReadStatusDto update(UUID readStatusId, ReadStatusRequestUpdateDto request) {
         Validators.requireNonNull(request, "request");
         ReadStatus readStatus = validateExistenceReadStatus(readStatusId);
 
         readStatus.updateLastReadAt(request.newLastReadAt());
-        return toDto(readStatus);
+        return readStatusMapper.toDto(readStatus);
     }
 
     @Transactional

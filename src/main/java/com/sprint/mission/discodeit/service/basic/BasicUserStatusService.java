@@ -3,9 +3,10 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestCreateDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestOnlineUpdateDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestUpdateDto;
-import com.sprint.mission.discodeit.dto.UserStatus.UserStatusResponseDto;
+import com.sprint.mission.discodeit.dto.UserStatus.UserStatusDto;
 import com.sprint.mission.discodeit.entity.base.User;
 import com.sprint.mission.discodeit.entity.base.UserStatus;
+import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -18,8 +19,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import static com.sprint.mission.discodeit.mapper.UserStatusMapper.toDto;
-
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
@@ -27,9 +26,11 @@ public class BasicUserStatusService implements UserStatusService {
     private final UserStatusRepository userStatusRepository;
     private final UserRepository userRepository;
 
+    private final UserStatusMapper userStatusMapper;
+
     @Transactional
     @Override
-    public UserStatusResponseDto create(UserStatusRequestCreateDto request) {
+    public UserStatusDto create(UserStatusRequestCreateDto request) {
         Validators.requireNonNull(request, "request");
 
         User user = userRepository.findById(request.userId())
@@ -43,22 +44,20 @@ public class BasicUserStatusService implements UserStatusService {
         UserStatus userStatus = new UserStatus(Instant.now());
         user.setStatus(userStatus);
 
-        boolean online = userStatus.isOnline();
-
         UserStatus savedUserStatus = userStatusRepository.save(userStatus);
-        return toDto(savedUserStatus, online);
+        return userStatusMapper.toDto(savedUserStatus);
     }
 
     @Override
-    public UserStatusResponseDto find(UUID id) {
+    public UserStatusDto find(UUID id) {
         UserStatus userStatus = validateExistenceUserStatus(id);
-        return toDto(userStatus, userStatus.isOnline());
+        return userStatusMapper.toDto(userStatus);
     }
 
     @Override
-    public List<UserStatusResponseDto> findAll() {
+    public List<UserStatusDto> findAll() {
         return userStatusRepository.findAll().stream()
-                .map(us -> toDto(us, us.isOnline()))
+                .map(userStatusMapper::toDto)
                 .toList();
     }
 

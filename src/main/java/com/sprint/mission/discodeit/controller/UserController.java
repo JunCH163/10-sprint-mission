@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestOnlineUpdateDto;
-import com.sprint.mission.discodeit.dto.UserStatus.UserStatusResponseDto;
+import com.sprint.mission.discodeit.dto.UserStatus.UserStatusDto;
 import com.sprint.mission.discodeit.dto.user.UserRequestCreateDto;
 import com.sprint.mission.discodeit.dto.user.UserRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.user.UserDto;
@@ -140,7 +140,7 @@ public class UserController {
             )
     })
     @PatchMapping(value = "/{userId}/userStatus")
-    public ResponseEntity<UserStatusResponseDto> updateOnline(
+    public ResponseEntity<UserStatusDto> updateOnline(
             @Parameter(description = "상태를 변경할 User ID")
             @PathVariable UUID userId,
             @RequestBody UserStatusRequestOnlineUpdateDto userOnlineRequest
