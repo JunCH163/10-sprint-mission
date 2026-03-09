@@ -4,7 +4,7 @@ import com.sprint.mission.discodeit.dto.UserStatus.UserStatusRequestOnlineUpdate
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusResponseDto;
 import com.sprint.mission.discodeit.dto.user.UserRequestCreateDto;
 import com.sprint.mission.discodeit.dto.user.UserRequestUpdateDto;
-import com.sprint.mission.discodeit.dto.user.UserResponseDto;
+import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.dto.user.UserResponseGetDto;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -52,13 +52,13 @@ public class UserController {
             )
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserResponseDto> create(
+    public ResponseEntity<UserDto> create(
             @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             @RequestPart UserRequestCreateDto userCreateRequest,
             @RequestPart(required = false)
             @Parameter(description = "User 프로필 이미지")
             MultipartFile profile) {
-        UserResponseDto urDto = userService.create(userCreateRequest, profile);
+        UserDto urDto = userService.create(userCreateRequest, profile);
         return ResponseEntity.status(201).body(urDto);
     }
 
@@ -81,7 +81,7 @@ public class UserController {
             )
     })
     @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserResponseDto> update(
+    public ResponseEntity<UserDto> update(
             @Parameter(description = "수정할 User ID")
             @PathVariable UUID userId,
             @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
@@ -89,7 +89,7 @@ public class UserController {
             @RequestPart(required = false)
             @Parameter(description = "수정할 User 프로필 이미지")
             MultipartFile profile) {
-        UserResponseDto urDto = userService.update(userId, userUpdateRequest, profile);
+        UserDto urDto = userService.update(userId, userUpdateRequest, profile);
         return ResponseEntity.ok(urDto);
     }
 

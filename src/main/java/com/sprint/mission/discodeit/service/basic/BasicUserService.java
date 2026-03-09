@@ -1,11 +1,11 @@
 package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.user.UserRequestCreateDto;
 import com.sprint.mission.discodeit.dto.user.UserRequestUpdateDto;
-import com.sprint.mission.discodeit.dto.user.UserResponseDto;
-import com.sprint.mission.discodeit.dto.user.UserResponseGetDto;
+import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.entity.base.BinaryContent;
 import com.sprint.mission.discodeit.entity.base.User;
 import com.sprint.mission.discodeit.entity.base.UserStatus;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -22,9 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.sprint.mission.discodeit.mapper.UserMapper.toCreateDto;
-import static com.sprint.mission.discodeit.mapper.UserMapper.toDto;
-
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
@@ -33,9 +30,11 @@ public class BasicUserService implements UserService {
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
 
+    private final UserMapper userMapper;
+
     @Transactional
     @Override
-    public UserResponseDto create(UserRequestCreateDto request, MultipartFile profileImage) {
+    public UserDto create(UserRequestCreateDto request, MultipartFile profileImage) {
             Validators.validationUser(request.username(), request.email(), request.password());
             validateDuplicationUserName(request.username());
             validateDuplicationEmail(request.email());
@@ -53,29 +52,29 @@ public class BasicUserService implements UserService {
         user.setStatus(userStatus);
 
         User savedUser = userRepository.save(user);
-        return toCreateDto(savedUser);
+        return userMapper.toDto(savedUser, false);
     }
 
     @Override
-    public UserResponseGetDto find(UUID id) {
+    public UserDto find(UUID id) {
         User user = validateExistenceUser(id);
         boolean online = resolveOnline(id);
-        return toDto(user, online);
+        return userMapper.toDto(user, online);
     }
 
 
 
     // TODO: N+1 해결할 것
     @Override
-    public List<UserResponseGetDto> findAll() {
+    public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(u -> toDto(u, resolveOnline(u.getId())))
+                .map(u -> userMapper.toDto(u, resolveOnline(u.getId())))
                 .toList();
     }
 
     @Transactional
     @Override
-    public UserResponseDto update(UUID userId, UserRequestUpdateDto request, MultipartFile profileImage) {
+    public UserDto update(UUID userId, UserRequestUpdateDto request, MultipartFile profileImage) {
         Validators.requireNonNull(request, "request");
         User user = validateExistenceUser(userId);
 
@@ -100,7 +99,7 @@ public class BasicUserService implements UserService {
             user.updateProfile(newProfile);
         }
 
-        return toCreateDto(user);
+        return userMapper.toDto(user, true);
     }
 
     @Transactional
@@ -117,9 +116,9 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public List<UserResponseGetDto> findUsersByChannel(UUID channelId) {
+    public List<UserDto> findUsersByChannel(UUID channelId) {
         return userRepository.findUsersByChannelId(channelId).stream()
-                .map(u -> toDto(u, resolveOnline(u.getId())))
+                .map(u -> userMapper.toDto(u, resolveOnline(u.getId())))
                 .toList();
     }
 

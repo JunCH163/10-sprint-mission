@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentResponseDto;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,10 +41,10 @@ public class BinaryContentController {
             )
     })
     @GetMapping(value = "/{binaryContentId}")
-    public ResponseEntity<BinaryContentResponseDto> find(
+    public ResponseEntity<BinaryContentDto> find(
             @Parameter(description = "조회할 첨부 파일 ID")
             @PathVariable UUID binaryContentId) {
-        BinaryContentResponseDto bcDto = binaryContentService.find(binaryContentId);
+        BinaryContentDto bcDto = binaryContentService.find(binaryContentId);
         return ResponseEntity.ok(bcDto);
     }
 
@@ -55,10 +55,10 @@ public class BinaryContentController {
                     description = "첨부 파일 목록 조회 성공"
             )
     @GetMapping()
-    public ResponseEntity<List<BinaryContentResponseDto>> findAllByIdIn
+    public ResponseEntity<List<BinaryContentDto>> findAllByIdIn
     ( @Parameter(description = "조회할 첨부 파일 ID 목록")
       @RequestParam List<UUID> binaryContentIds) {
-        List<BinaryContentResponseDto> bcDto = binaryContentService.findAllByIdIn(binaryContentIds);
+        List<BinaryContentDto> bcDto = binaryContentService.findAllByIdIn(binaryContentIds);
         return ResponseEntity.ok(bcDto);
     }
 }

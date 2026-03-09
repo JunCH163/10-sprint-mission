@@ -1,21 +1,18 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentRequestCreateDto;
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentResponseDto;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
 import com.sprint.mission.discodeit.entity.base.BinaryContent;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.util.Validators;
-import com.sun.source.tree.BinaryTree;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-
-import static com.sprint.mission.discodeit.mapper.BinaryContentMapper.toDto;
 
 @Transactional(readOnly = true)
 @Service
@@ -24,9 +21,11 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     private final BinaryContentRepository binaryContentRepository;
 
+    private final BinaryContentMapper binaryContentMapper;
+
     @Transactional
     @Override
-    public BinaryContentResponseDto create(BinaryContentRequestCreateDto request) {
+    public BinaryContentDto create(BinaryContentRequestCreateDto request) {
         Validators.requireNonNull(request, "request");
         validateBinaryContent(request.bytes(), request.contentType());
 
@@ -40,20 +39,20 @@ public class BasicBinaryContentService implements BinaryContentService {
         );
 
         BinaryContent savedBinaryContent = binaryContentRepository.save(binaryContent);
-        return toDto(savedBinaryContent);
+        return binaryContentMapper.toDto(savedBinaryContent);
     }
 
     @Override
-    public BinaryContentResponseDto find(UUID id) {
+    public BinaryContentDto find(UUID id) {
         BinaryContent binaryContent = validateExistenceBinaryContent(id);
-        return toDto(binaryContent);
+        return binaryContentMapper.toDto(binaryContent);
     }
 
     @Override
-    public List<BinaryContentResponseDto> findAllByIdIn(List<UUID> ids) {
+    public List<BinaryContentDto> findAllByIdIn(List<UUID> ids) {
         Validators.requireNonNull(ids, "ids");
         return binaryContentRepository.findAllById(ids).stream()
-                .map(BinaryContentMapper::toDto)
+                .map(binaryContentMapper::toDto)
                 .toList();
     }
 
