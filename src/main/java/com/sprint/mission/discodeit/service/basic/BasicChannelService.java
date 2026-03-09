@@ -19,8 +19,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import static com.sprint.mission.discodeit.mapper.ChannelMapper.toDto;
-import static com.sprint.mission.discodeit.mapper.ChannelMapper.toParticipantDto;
 
 @Transactional(readOnly = true)
 @Service
@@ -33,7 +31,7 @@ public class BasicChannelService implements ChannelService {
 
     @Transactional
     @Override
-    public ChannelResponseDto createPublic(PublicChannelRequestCreateDto request) {
+    public ChannelDto createPublic(PublicChannelRequestCreateDto request) {
         Validators.validateCreatePublicChannel(request.name(), request.description());
         Channel channel = new Channel(ChannelType.PUBLIC, request.name(), request.description());
 
@@ -43,7 +41,7 @@ public class BasicChannelService implements ChannelService {
 
     @Transactional
     @Override
-    public ChannelResponseDto createPrivate(PrivateChannelRequestCreateDto request) {
+    public ChannelDto createPrivate(PrivateChannelRequestCreateDto request) {
         Validators.validateCreatePrivateChannel(request.participantIds());
 
         List<User> users = userRepository.findAllById(request.participantIds());
@@ -68,7 +66,7 @@ public class BasicChannelService implements ChannelService {
 
 
     @Override
-    public ChannelResponseDto find(UUID id) {
+    public ChannelDto find(UUID id) {
         Channel channel = validateExistenceChannel(id);
         Instant lastMessageAt = getLastMessageAt(id);
 
@@ -85,7 +83,7 @@ public class BasicChannelService implements ChannelService {
 
     @Transactional
     @Override
-    public ChannelResponseDto updateChannel(UUID channelId, ChannelRequestUpdateDto request) {
+    public ChannelDto updateChannel(UUID channelId, ChannelRequestUpdateDto request) {
         Validators.requireNonNull(request, "request");
         Channel channel = validateExistenceChannel(channelId);
 

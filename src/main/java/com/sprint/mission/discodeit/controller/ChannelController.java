@@ -32,9 +32,9 @@ public class ChannelController {
             description = "Public Channel이 성공적으로 생성됨"
     )
     @PostMapping(value = "/public")
-    public ResponseEntity<ChannelResponseDto> createPublic(
+    public ResponseEntity<ChannelDto> createPublic(
             @RequestBody PublicChannelRequestCreateDto requestCreateDto) {
-        ChannelResponseDto crDto = channelService.createPublic(requestCreateDto);
+        ChannelDto crDto = channelService.createPublic(requestCreateDto);
         return ResponseEntity.ok(crDto);
     }
 
@@ -46,8 +46,8 @@ public class ChannelController {
             description = "Private Channel이 성공적으로 생성됨."
     )
     @PostMapping(value = "/private")
-    public ResponseEntity<ChannelResponseDto> createPrivate(@RequestBody PrivateChannelRequestCreateDto requestCreateDto) {
-        ChannelResponseDto crDto = channelService.createPrivate(requestCreateDto);
+    public ResponseEntity<ChannelDto> createPrivate(@RequestBody PrivateChannelRequestCreateDto requestCreateDto) {
+        ChannelDto crDto = channelService.createPrivate(requestCreateDto);
         return ResponseEntity.status(201).body(crDto);
     }
 
@@ -71,11 +71,11 @@ public class ChannelController {
     }
     )
     @PatchMapping(value = "/{channelId}")
-    public ResponseEntity<ChannelResponseDto> update(
+    public ResponseEntity<ChannelDto> update(
             @Parameter(description = "수정할 Channel ID")
             @PathVariable UUID channelId,
             @RequestBody ChannelRequestUpdateDto requestUpdateDto) {
-        ChannelResponseDto crDto = channelService.updateChannel(channelId, requestUpdateDto);
+        ChannelDto crDto = channelService.updateChannel(channelId, requestUpdateDto);
         return ResponseEntity.ok(crDto);
     }
 
