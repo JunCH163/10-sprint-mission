@@ -7,8 +7,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface UserStatusMapper {
-
     @Mapping(target = "userId", source = "user.id")
     UserStatusDto toDto(UserStatus userStatus);
-
 }
