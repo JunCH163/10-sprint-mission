@@ -2,14 +2,12 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.message.MessageRequestCreateDto;
 import com.sprint.mission.discodeit.dto.message.MessageRequestUpdateDto;
-import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
+import com.sprint.mission.discodeit.dto.message.MessageDto;
 import com.sprint.mission.discodeit.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,14 +45,14 @@ public class MessageController {
             )
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MessageResponseDto> create(
+    public ResponseEntity<MessageDto> create(
             @Parameter(description = "Message 생성 정보", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             @RequestPart MessageRequestCreateDto messageCreateRequest,
             @Parameter(description = "Message 첨부 파일들")
             @RequestPart(value = "attachments", required = false)
             List<MultipartFile> attachments) {
-        MessageResponseDto messageResponseDto = messageService.create(messageCreateRequest, attachments);
-        return ResponseEntity.status(201).body(messageResponseDto);
+        MessageDto messageDto = messageService.create(messageCreateRequest, attachments);
+        return ResponseEntity.status(201).body(messageDto);
     }
 
     // 2. 메시지 수정
@@ -71,12 +69,12 @@ public class MessageController {
             )
     })
     @PatchMapping(value = "/{messageId}")
-    public ResponseEntity<MessageResponseDto> update(
+    public ResponseEntity<MessageDto> update(
             @Parameter(description = "수정할 Message ID")
             @PathVariable UUID messageId,
             @RequestBody MessageRequestUpdateDto messageRequestDto) {
-        MessageResponseDto messageResponseDto = messageService.update(messageId, messageRequestDto);
-        return ResponseEntity.ok(messageResponseDto);
+        MessageDto messageDto = messageService.update(messageId, messageRequestDto);
+        return ResponseEntity.ok(messageDto);
     }
 
     // 3. 메시지 삭제
@@ -105,10 +103,10 @@ public class MessageController {
             description = "Message 목록 조회 성공"
     )
     @GetMapping()
-    public ResponseEntity<List<MessageResponseDto>> findByChannelId(
+    public ResponseEntity<List<MessageDto>> findByChannelId(
             @Parameter(description = "조회할 Channel ID")
             @RequestParam UUID channelId) {
-        List<MessageResponseDto> mrDto = messageService.findByChannelId(channelId);
+        List<MessageDto> mrDto = messageService.findByChannelId(channelId);
         return ResponseEntity.ok(mrDto);
     }
 

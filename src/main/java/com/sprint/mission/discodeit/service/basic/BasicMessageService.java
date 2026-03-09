@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.message.MessageRequestCreateDto;
 import com.sprint.mission.discodeit.dto.message.MessageRequestUpdateDto;
-import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
+import com.sprint.mission.discodeit.dto.message.MessageDto;
 import com.sprint.mission.discodeit.entity.base.BinaryContent;
 import com.sprint.mission.discodeit.entity.base.Channel;
 import com.sprint.mission.discodeit.entity.base.Message;
@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.sprint.mission.discodeit.mapper.MessageMapper.toDto;
-
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
@@ -36,9 +34,11 @@ public class BasicMessageService implements MessageService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
 
+    private final MessageMapper messageMapper;
+
     @Transactional
     @Override
-    public MessageResponseDto create(MessageRequestCreateDto request, List<MultipartFile> attachments) {
+    public MessageDto create(MessageRequestCreateDto request, List<MultipartFile> attachments) {
         Validators.validateCreateMessageRequest(request);
 
         User author = userRepository.findById(request.authorId())
@@ -54,25 +54,25 @@ public class BasicMessageService implements MessageService {
         Message message = new Message(request.content(), channel, author, attachmentFiles);
 
         Message savedMessage = messageRepository.save(message);
-        return toDto(savedMessage);
+        return messageMapper.toDto(savedMessage);
     }
 
     @Override
-    public MessageResponseDto find(UUID id) {
+    public MessageDto find(UUID id) {
         Message message = validateExistenceMessage(id);
-        return toDto(message);
+        return messageMapper.toDto(message);
     }
 
     @Override
-    public List<MessageResponseDto> findByChannelId(UUID id) {
+    public List<MessageDto> findByChannelId(UUID id) {
         return messageRepository.findAllByChannelId(id).stream()
-                .map(MessageMapper::toDto)
+                .map(messageMapper::toDto)
                 .toList();
     }
 
     @Transactional
     @Override
-    public MessageResponseDto update(UUID messageId,MessageRequestUpdateDto request) {
+    public MessageDto update(UUID messageId, MessageRequestUpdateDto request) {
         Message message = validateExistenceMessage(messageId);
 
         Optional.ofNullable(request.newContent())
@@ -80,7 +80,7 @@ public class BasicMessageService implements MessageService {
                     message.updateContent(cont);
                 });
 
-        return toDto(message);
+        return messageMapper.toDto(message);
     }
 
     @Transactional
@@ -90,9 +90,9 @@ public class BasicMessageService implements MessageService {
         messageRepository.delete(message);
     }
 
-    public List<MessageResponseDto> readMessagesByUser(UUID userId) {
+    public List<MessageDto> readMessagesByUser(UUID userId) {
         return messageRepository.findAllByAuthorId(userId).stream()
-                .map(MessageMapper::toDto)
+                .map(messageMapper::toDto)
                 .toList();
     }
 

@@ -4,25 +4,18 @@ import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.entity.base.User;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
-public class UserMapper {
+@Mapper(componentModel = "spring", uses = {BinaryContentMapper.class})
+public interface UserMapper {
 
-    private final BinaryContentMapper binaryContentMapper;
+    @Mapping(target = "profile", source = "user.profile")
+    @Mapping(target = "online", source = "online")
+    UserDto toDto(User user, Boolean online);
 
-    public UserDto toDto(User user, Boolean online) {
-        if(user == null){
-            return null;
-        }
-
-        return UserDto.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .profile(binaryContentMapper.toDto(user.getProfile()))
-                .online(online)
-                .build();
+    default UserDto toDto(User user) {
+        return toDto(user, false);
     }
 }
