@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,18 +31,16 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public BinaryContentDto create(BinaryContentRequestCreateDto request) {
         Validators.requireNonNull(request, "request");
-        validateBinaryContent(request.bytes(), request.contentType());
-
-        long fileSize = request.bytes().length;
+        validateBinaryContent(request.inputStream(), request.size(),request.contentType());
 
         BinaryContent binaryContent = new BinaryContent(
                 request.fileName(),
-                fileSize,
+                request.size(),
                 request.contentType()
         );
 
         BinaryContent savedBinaryContent = binaryContentRepository.save(binaryContent);
-        binaryContentStorage.put(savedBinaryContent.getId(), request.bytes());
+        binaryContentStorage.put(savedBinaryContent.getId(), request.inputStream());
         return binaryContentMapper.toDto(savedBinaryContent);
     }
 
@@ -67,10 +66,15 @@ public class BasicBinaryContentService implements BinaryContentService {
     }
 
 
-    private void validateBinaryContent(byte[] bytes, String contentType) {
-        if (bytes == null || bytes.length == 0) {
+    private void validateBinaryContent(InputStream inputStream, long size, String contentType) {
+        if (inputStream == null) {
             throw new IllegalArgumentException("첨부파일 데이터가 비어있습니다.");
         }
+
+        if(size <= 0) {
+            throw new IllegalArgumentException("첨부파일 크기가 0입니다.");
+        }
+
         if (contentType == null || contentType.isBlank()) {
             throw new IllegalArgumentException("첨부파일 contentType이 비어있습니다.");
         }

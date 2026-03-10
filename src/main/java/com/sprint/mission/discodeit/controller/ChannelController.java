@@ -107,10 +107,10 @@ public class ChannelController {
             description = "Channel 목록 조회 성공"
     )
     @GetMapping()
-    public ResponseEntity<List<ChannelParticipantResponseDto>> findAllByUserId(
+    public ResponseEntity<List<ChannelDto>> findAllByUserId(
             @Parameter(description = "조회할 User ID")
             @RequestParam UUID userId) {
-        List<ChannelParticipantResponseDto> crDto = channelService.findAllByUserId(userId);
+        List<ChannelDto> crDto = channelService.findAllByUserId(userId);
         return ResponseEntity.ok(crDto);
     }
 

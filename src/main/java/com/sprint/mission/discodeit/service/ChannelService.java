@@ -12,7 +12,7 @@ public interface ChannelService {
 
     ChannelDto find(UUID id);
 
-    List<ChannelParticipantResponseDto> findAllByUserId(UUID id);
+    List<ChannelDto> findAllByUserId(UUID id);
 
     ChannelDto updateChannel(UUID channelId, ChannelRequestUpdateDto channelRequestUpdateDto);
 

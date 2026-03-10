@@ -69,7 +69,8 @@ public class BinaryContentController {
     @Operation(summary = "파일 다운로드", operationId = "download")
     @ApiResponse(
             responseCode = "200",
-            description = "파일 다운로드 성공"
+            description = "파일 다운로드 성공",
+            content =  @Content(examples = @ExampleObject(value = "string"))
     )
     @GetMapping(value = "/{binaryContentId}/download")
     public ResponseEntity<?> download(

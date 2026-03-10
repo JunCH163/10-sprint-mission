@@ -10,6 +10,7 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class BasicUserService implements UserService {
     private final BinaryContentRepository binaryContentRepository;
 
     private final UserMapper userMapper;
+    private final BinaryContentStorage binaryContentStorage;
 
     @Transactional
     @Override
@@ -157,10 +159,11 @@ public class BasicUserService implements UserService {
             BinaryContent binaryContent = new BinaryContent(
                     profileImage.getOriginalFilename(),
                     profileImage.getSize(),
-                    profileImage.getBytes(),
                     profileImage.getContentType()
             );
-            return binaryContentRepository.save(binaryContent);
+            BinaryContent savedContent = binaryContentRepository.save(binaryContent);
+            binaryContentStorage.put(savedContent.getId(), profileImage.getInputStream());
+            return savedContent;
         } catch (IOException e) {
             throw new RuntimeException("프로필 이미지 처리 중 오류가 발생했습니다.", e);
         }

@@ -121,8 +121,8 @@ public class UserController {
             description = "User 목록 조회 성공"
             )
     @GetMapping()
-    public ResponseEntity<List<UserResponseGetDto>> findAll() {
-       List<UserResponseGetDto> users = userService.findAll();
+    public ResponseEntity<List<UserDto>> findAll() {
+       List<UserDto> users = userService.findAll();
        return ResponseEntity.ok(users);
     }
 

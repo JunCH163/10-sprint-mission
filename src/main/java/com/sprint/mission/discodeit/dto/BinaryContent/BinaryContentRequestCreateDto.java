@@ -1,6 +1,9 @@
 package com.sprint.mission.discodeit.dto.BinaryContent;
 
+import java.io.InputStream;
+
 public record BinaryContentRequestCreateDto(String fileName,
-                                            byte[] bytes,
-                                            String contentType) {
+                                            InputStream inputStream,
+                                            String contentType,
+                                            Long size) {
 }

@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.entity.base.Channel;
 import com.sprint.mission.discodeit.entity.base.ChannelType;
 import com.sprint.mission.discodeit.entity.base.ReadStatus;
 import com.sprint.mission.discodeit.entity.base.User;
+import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -29,6 +30,8 @@ public class BasicChannelService implements ChannelService {
     private final ReadStatusRepository readStatusRepository;
     private final MessageRepository messageRepository;
 
+    private final ChannelMapper channelMapper;
+
     @Transactional
     @Override
     public ChannelDto createPublic(PublicChannelRequestCreateDto request) {
@@ -36,7 +39,7 @@ public class BasicChannelService implements ChannelService {
         Channel channel = new Channel(ChannelType.PUBLIC, request.name(), request.description());
 
         Channel savedChannel = channelRepository.save(channel);
-        return toDto(savedChannel, null);
+        return channelMapper.toDto(savedChannel);
     }
 
     @Transactional
@@ -61,23 +64,21 @@ public class BasicChannelService implements ChannelService {
 
         readStatusRepository.saveAll(readStatuses);
 
-        return toDto(savedChannel, null);
+        return channelMapper.toDto(savedChannel);
     }
 
 
     @Override
     public ChannelDto find(UUID id) {
         Channel channel = validateExistenceChannel(id);
-        Instant lastMessageAt = getLastMessageAt(id);
-
-        return toDto(channel, lastMessageAt);
+        return channelMapper.toDto(channel);
     }
 
     // TODO: N+1 해결할 것
     @Override
-    public List<ChannelParticipantResponseDto> findAllByUserId(UUID id) {
+    public List<ChannelDto> findAllByUserId(UUID id) {
         return channelRepository.findChannelsByUserId(id).stream()
-                .map(channel -> toParticipantDto(channel, getLastMessageAt(channel.getId())))
+                .map(channelMapper::toDto)
                 .toList();
     }
 
@@ -102,7 +103,7 @@ public class BasicChannelService implements ChannelService {
 
 
 
-        return toDto(channel, getLastMessageAt(channel.getId()));
+        return channelMapper.toDto(channel);
     }
 
 

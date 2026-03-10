@@ -12,8 +12,11 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -93,7 +96,9 @@ public class MessageController {
             )
     })
     @DeleteMapping(value = "/{messageId}")
-    public ResponseEntity<Void> delete(@PathVariable UUID messageId) {
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "삭제할 Message ID")
+            @PathVariable UUID messageId) {
         messageService.delete(messageId);
         return ResponseEntity.noContent().build();
     }
@@ -108,6 +113,11 @@ public class MessageController {
     public ResponseEntity<PageResponse<MessageDto>> findByChannelId(
             @Parameter(description = "조회할 Channel ID")
             @RequestParam UUID channelId,
+
+            @Parameter(
+                    description = "페이징 정보",
+            example = "{\n  \"size\": 50,\n  \"page\": 0,\n  \"sort\": \"createdAt,desc\"\n}")
+            @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
         PageResponse<MessageDto> response = messageService.findByChannelId(channelId, pageable);
         return ResponseEntity.ok(response);
