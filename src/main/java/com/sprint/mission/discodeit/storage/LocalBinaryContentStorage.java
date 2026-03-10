@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Component
@@ -40,11 +41,11 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     }
 
     @Override
-    public UUID put(UUID id, byte[] data) {
+    public UUID put(UUID id, InputStream inputStream) {
         Path filePath = resolvePath(id);
 
         try {
-            Files.write(filePath, data);
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
             return id;
         } catch (IOException e) {
             throw new RuntimeException("파일 저장 중 오류가 발생했습니다.",e);

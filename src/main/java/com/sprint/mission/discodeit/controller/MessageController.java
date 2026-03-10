@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.controller;
 import com.sprint.mission.discodeit.dto.message.MessageRequestCreateDto;
 import com.sprint.mission.discodeit.dto.message.MessageRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.message.MessageDto;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -103,11 +105,12 @@ public class MessageController {
             description = "Message 목록 조회 성공"
     )
     @GetMapping()
-    public ResponseEntity<List<MessageDto>> findByChannelId(
+    public ResponseEntity<PageResponse<MessageDto>> findByChannelId(
             @Parameter(description = "조회할 Channel ID")
-            @RequestParam UUID channelId) {
-        List<MessageDto> mrDto = messageService.findByChannelId(channelId);
-        return ResponseEntity.ok(mrDto);
+            @RequestParam UUID channelId,
+            Pageable pageable) {
+        PageResponse<MessageDto> response = messageService.findByChannelId(channelId, pageable);
+        return ResponseEntity.ok(response);
     }
 
 

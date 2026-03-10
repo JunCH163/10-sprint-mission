@@ -3,18 +3,25 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.message.MessageRequestCreateDto;
 import com.sprint.mission.discodeit.dto.message.MessageRequestUpdateDto;
 import com.sprint.mission.discodeit.dto.message.MessageDto;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.base.BinaryContent;
 import com.sprint.mission.discodeit.entity.base.Channel;
 import com.sprint.mission.discodeit.entity.base.Message;
 import com.sprint.mission.discodeit.entity.base.User;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +42,7 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     private final MessageMapper messageMapper;
+    private final BinaryContentStorage binaryContentStorage;
 
     @Transactional
     @Override
@@ -64,10 +72,12 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public List<MessageDto> findByChannelId(UUID id) {
-        return messageRepository.findAllByChannelId(id).stream()
-                .map(messageMapper::toDto)
-                .toList();
+    public PageResponse<MessageDto> findByChannelId(UUID channelId, Pageable pageable) {
+
+        Slice<Message> messageSlice = messageRepository.findAllByChannelId(channelId, pageable);
+
+        Slice<MessageDto> dtoSlice = messageSlice.map(messageMapper::toDto);
+        return PageResponseMapper.fromSlice(dtoSlice);
     }
 
     @Transactional
@@ -121,9 +131,9 @@ public class BasicMessageService implements MessageService {
                 BinaryContent content = new BinaryContent(
                         file.getOriginalFilename(),
                         file.getSize(),
-                        file.getBytes(),
                         file.getContentType());
                 BinaryContent saved = binaryContentRepository.save(content);
+                binaryContentStorage.put(saved.getId(), file.getInputStream());
                 attachmentFiles.add(saved);
             } catch (IOException e) {
                 throw new RuntimeException("첨부파일 처리 중 오류가 발생했습니다.", e);
