@@ -35,7 +35,7 @@ public class ChannelController {
     public ResponseEntity<ChannelDto> createPublic(
             @RequestBody PublicChannelRequestCreateDto requestCreateDto) {
         ChannelDto crDto = channelService.createPublic(requestCreateDto);
-        return ResponseEntity.ok(crDto);
+        return ResponseEntity.status(201).body(crDto);
     }
 
 
