@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Transactional(readOnly = true)
@@ -83,7 +84,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     private BinaryContent validateExistenceBinaryContent(UUID id) {
         Validators.requireNonNull(id, "id는 null이 될 수 없습니다.");
         return binaryContentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("BinaryContent가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("BinaryContent가 존재하지 않습니다."));
 
     }
 }

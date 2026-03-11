@@ -145,7 +145,7 @@ public class UserController {
             @PathVariable UUID userId,
             @RequestBody UserStatusRequestOnlineUpdateDto userOnlineRequest
             ) {
-        userStatusService.updateByUserId(userId, userOnlineRequest);
-        return ResponseEntity.ok().build();
+        UserStatusDto updatedStatus = userStatusService.updateByUserId(userId, userOnlineRequest);
+        return ResponseEntity.ok(updatedStatus);
     }
 }

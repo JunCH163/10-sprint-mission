@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Transactional(readOnly = true)
@@ -35,10 +36,10 @@ public class BasicReadStatusService implements ReadStatusService {
         Validators.validateCreateReadStatusRequest(request);
 
         Channel channel = channelRepository.findById(request.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("채널 id가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("채널 id가 존재하지 않습니다."));
 
         User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException("유저 Id가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("유저 Id가 존재하지 않습니다."));
 
         boolean exists = readStatusRepository.existsByUserAndChannel(user, channel);
 
@@ -84,6 +85,6 @@ public class BasicReadStatusService implements ReadStatusService {
     private ReadStatus validateExistenceReadStatus(UUID id) {
         Validators.requireNonNull(id, "id는 null이 될 수 없습니다.");
         return readStatusRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("ReadStatus가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("ReadStatus가 존재하지 않습니다."));
     }
 }

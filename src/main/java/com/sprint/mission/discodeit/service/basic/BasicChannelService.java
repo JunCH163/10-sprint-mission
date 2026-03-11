@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -89,7 +90,7 @@ public class BasicChannelService implements ChannelService {
         Channel channel = validateExistenceChannel(channelId);
 
         if(channel.getType() == ChannelType.PRIVATE) {
-            throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
+            throw new IllegalStateException("PRIVATE 채널은 수정할 수 없습니다.");
         }
 
         Optional.ofNullable(request.newName())
@@ -119,11 +120,6 @@ public class BasicChannelService implements ChannelService {
     private Channel validateExistenceChannel(UUID id) {
         Validators.requireNonNull(id, "id는 null이 될 수 없습니다.");
         return channelRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("채널 id가 존재하지 않습니다."));
-    }
-
-    private Instant getLastMessageAt(UUID channelId) {
-        return messageRepository.findLatestCreatedAtByChannelId(channelId)
-                .orElse(null);
+                .orElseThrow(() -> new NoSuchElementException("채널 id가 존재하지 않습니다."));
     }
 }

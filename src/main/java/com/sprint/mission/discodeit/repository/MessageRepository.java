@@ -14,10 +14,6 @@ import java.util.UUID;
 
 public interface MessageRepository extends JpaRepository<Message, UUID> {
 
-    Optional<Instant> findLatestCreatedAtByChannelId(UUID channelId);
-
-    void deleteAllByChannelId(UUID channelId);
-
     Slice<Message> findAllByChannelId(UUID channelId, Pageable pageable);
 
     List<Message> findAllByAuthorId(UUID userId);

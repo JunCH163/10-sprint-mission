@@ -18,8 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -141,7 +143,7 @@ public class BasicUserService implements UserService {
     private User validateExistenceUser(UUID id) {
         Validators.requireNonNull(id, "id는 null이 될 수 없습니다.");
         return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("유저 id가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("유저 id가 존재하지 않습니다."));
 
     }
 
@@ -165,7 +167,7 @@ public class BasicUserService implements UserService {
             binaryContentStorage.put(savedContent.getId(), profileImage.getInputStream());
             return savedContent;
         } catch (IOException e) {
-            throw new RuntimeException("프로필 이미지 처리 중 오류가 발생했습니다.", e);
+            throw new UncheckedIOException("프로필 이미지 처리 중 오류가 발생했습니다.", e);
         }
     }
 

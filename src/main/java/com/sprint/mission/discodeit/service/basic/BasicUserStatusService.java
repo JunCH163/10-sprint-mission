@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Transactional(readOnly = true)
@@ -34,7 +35,7 @@ public class BasicUserStatusService implements UserStatusService {
         Validators.requireNonNull(request, "request");
 
         User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("유저가 존재하지 않습니다."));
 
         boolean exists = userStatusRepository.existsByUser(user);
 
@@ -61,22 +62,17 @@ public class BasicUserStatusService implements UserStatusService {
                 .toList();
     }
 
-    @Transactional
-    @Override
-    public void update(UserStatusRequestUpdateDto request) {
-        Validators.requireNonNull(request, "request");
-        UserStatus userStatus = validateExistenceUserStatus(request.id());
-        userStatus.updateLastActiveAt();
-    }
 
     @Transactional
     @Override
-    public void updateByUserId(UUID userid, UserStatusRequestOnlineUpdateDto request) {
+    public UserStatusDto updateByUserId(UUID userid, UserStatusRequestOnlineUpdateDto request) {
         Validators.requireNonNull(userid, "userid는 null이 될 수 없습니다.");
         UserStatus status = userStatusRepository.findByUserId(userid)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 상태 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("해당 유저의 상태 정보를 찾을 수 없습니다."));
 
         status.updateLastActiveAt(request.newLastActiveAt());
+
+        return userStatusMapper.toDto(status);
     }
 
     @Override
@@ -88,7 +84,7 @@ public class BasicUserStatusService implements UserStatusService {
     private UserStatus validateExistenceUserStatus(UUID id) {
         Validators.requireNonNull(id, "id는 null이 될 수 없습니다.");
         return userStatusRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("UserStatus가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("UserStatus가 존재하지 않습니다."));
 
     }
 

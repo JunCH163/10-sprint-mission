@@ -18,19 +18,15 @@ import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.io.UncheckedIOException;
+import java.util.*;
 
 @Transactional(readOnly = true)
 @Service
@@ -50,10 +46,10 @@ public class BasicMessageService implements MessageService {
         Validators.validateCreateMessageRequest(request);
 
         User author = userRepository.findById(request.authorId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
 
         Channel channel = channelRepository.findById(request.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
 
         Validators.validationMessage(request.content());
 
@@ -109,7 +105,7 @@ public class BasicMessageService implements MessageService {
     private Message validateExistenceMessage(UUID id) {
         Validators.requireNonNull(id, "id는 null이 될 수 없습니다.");
         return messageRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("메세지 id는 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("메세지 id는 존재하지 않습니다."));
     }
 
     private List<BinaryContent> storeAttachments(List<MultipartFile> attachments) {
@@ -136,7 +132,7 @@ public class BasicMessageService implements MessageService {
                 binaryContentStorage.put(saved.getId(), file.getInputStream());
                 attachmentFiles.add(saved);
             } catch (IOException e) {
-                throw new RuntimeException("첨부파일 처리 중 오류가 발생했습니다.", e);
+                throw new UncheckedIOException("첨부파일 처리 중 오류가 발생했습니다.", e);
             }
         }
         return attachmentFiles;

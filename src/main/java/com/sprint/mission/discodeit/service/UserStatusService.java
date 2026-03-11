@@ -15,9 +15,7 @@ public interface UserStatusService {
 
     List<UserStatusDto> findAll();
 
-    void update(UserStatusRequestUpdateDto request);
-
-    void updateByUserId(UUID id, UserStatusRequestOnlineUpdateDto request);
+    UserStatusDto updateByUserId(UUID id, UserStatusRequestOnlineUpdateDto request);
 
     void delete(UUID id);
 }
