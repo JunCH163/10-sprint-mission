@@ -114,9 +114,8 @@ public class MessageController {
             @RequestParam UUID channelId,
 
             @Parameter(
-                    description = "페이징 정보",
-            example = "{\n  \"size\": 50,\n  \"page\": 0,\n  \"sort\": \"createdAt,desc\"\n}")
-            @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC)
+                    description = "페이징 정보")
+            @PageableDefault(page = 0, size = 50, sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
         PageResponse<MessageDto> response = messageService.findByChannelId(channelId, pageable);
         return ResponseEntity.ok(response);

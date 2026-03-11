@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -41,14 +42,14 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     }
 
     @Override
-    public UUID put(UUID id, InputStream inputStream) {
+    public UUID put(UUID id, byte[] bytes) {
         Path filePath = resolvePath(id);
 
         try {
-            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            Files.write(filePath, bytes);
             return id;
         } catch (IOException e) {
-            throw new RuntimeException("파일 저장 중 오류가 발생했습니다.",e);
+            throw new UncheckedIOException("파일 저장 중 오류가 발생했습니다.",e);
         }
     }
 
@@ -59,7 +60,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
         try {
             return Files.newInputStream(filePath);
         } catch (IOException e) {
-            throw new RuntimeException("파일을 읽어오는 중 오류가 발생했습니다. (id: " + id + ")", e);
+            throw new UncheckedIOException("파일을 읽어오는 중 오류가 발생했습니다. (id: " + id + ")", e);
         }
     }
 

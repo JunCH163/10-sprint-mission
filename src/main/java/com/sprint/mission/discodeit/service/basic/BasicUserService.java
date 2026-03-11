@@ -164,7 +164,7 @@ public class BasicUserService implements UserService {
                     profileImage.getContentType()
             );
             BinaryContent savedContent = binaryContentRepository.save(binaryContent);
-            binaryContentStorage.put(savedContent.getId(), profileImage.getInputStream());
+            binaryContentStorage.put(savedContent.getId(), profileImage.getBytes());
             return savedContent;
         } catch (IOException e) {
             throw new UncheckedIOException("프로필 이미지 처리 중 오류가 발생했습니다.", e);

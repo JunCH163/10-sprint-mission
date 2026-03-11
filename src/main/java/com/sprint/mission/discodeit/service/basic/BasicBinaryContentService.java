@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -32,7 +31,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public BinaryContentDto create(BinaryContentRequestCreateDto request) {
         Validators.requireNonNull(request, "request");
-        validateBinaryContent(request.inputStream(), request.size(),request.contentType());
+        validateBinaryContent(request.data(), request.size(),request.contentType());
 
         BinaryContent binaryContent = new BinaryContent(
                 request.fileName(),
@@ -41,7 +40,7 @@ public class BasicBinaryContentService implements BinaryContentService {
         );
 
         BinaryContent savedBinaryContent = binaryContentRepository.save(binaryContent);
-        binaryContentStorage.put(savedBinaryContent.getId(), request.inputStream());
+        binaryContentStorage.put(savedBinaryContent.getId(), request.data());
         return binaryContentMapper.toDto(savedBinaryContent);
     }
 
@@ -67,8 +66,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     }
 
 
-    private void validateBinaryContent(InputStream inputStream, long size, String contentType) {
-        if (inputStream == null) {
+    private void validateBinaryContent(byte[] bytes, long size, String contentType) {
+        if (bytes == null || bytes.length == 0) {
             throw new IllegalArgumentException("첨부파일 데이터가 비어있습니다.");
         }
 

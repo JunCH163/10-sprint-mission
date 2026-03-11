@@ -129,7 +129,7 @@ public class BasicMessageService implements MessageService {
                         file.getSize(),
                         file.getContentType());
                 BinaryContent saved = binaryContentRepository.save(content);
-                binaryContentStorage.put(saved.getId(), file.getInputStream());
+                binaryContentStorage.put(saved.getId(), file.getBytes());
                 attachmentFiles.add(saved);
             } catch (IOException e) {
                 throw new UncheckedIOException("첨부파일 처리 중 오류가 발생했습니다.", e);
