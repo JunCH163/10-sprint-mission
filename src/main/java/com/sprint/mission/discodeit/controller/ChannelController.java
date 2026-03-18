@@ -32,10 +32,10 @@ public class ChannelController {
             description = "Public Channel이 성공적으로 생성됨"
     )
     @PostMapping(value = "/public")
-    public ResponseEntity<ChannelResponseDto> createPublic(
+    public ResponseEntity<ChannelDto> createPublic(
             @RequestBody PublicChannelRequestCreateDto requestCreateDto) {
-        ChannelResponseDto crDto = channelService.createPublic(requestCreateDto);
-        return ResponseEntity.ok(crDto);
+        ChannelDto crDto = channelService.createPublic(requestCreateDto);
+        return ResponseEntity.status(201).body(crDto);
     }
 
 
@@ -46,8 +46,8 @@ public class ChannelController {
             description = "Private Channel이 성공적으로 생성됨."
     )
     @PostMapping(value = "/private")
-    public ResponseEntity<ChannelResponseDto> createPrivate(@RequestBody PrivateChannelRequestCreateDto requestCreateDto) {
-        ChannelResponseDto crDto = channelService.createPrivate(requestCreateDto);
+    public ResponseEntity<ChannelDto> createPrivate(@RequestBody PrivateChannelRequestCreateDto requestCreateDto) {
+        ChannelDto crDto = channelService.createPrivate(requestCreateDto);
         return ResponseEntity.status(201).body(crDto);
     }
 
@@ -71,11 +71,11 @@ public class ChannelController {
     }
     )
     @PatchMapping(value = "/{channelId}")
-    public ResponseEntity<ChannelResponseDto> update(
+    public ResponseEntity<ChannelDto> update(
             @Parameter(description = "수정할 Channel ID")
             @PathVariable UUID channelId,
             @RequestBody ChannelRequestUpdateDto requestUpdateDto) {
-        ChannelResponseDto crDto = channelService.updateChannel(channelId, requestUpdateDto);
+        ChannelDto crDto = channelService.updateChannel(channelId, requestUpdateDto);
         return ResponseEntity.ok(crDto);
     }
 
@@ -107,10 +107,10 @@ public class ChannelController {
             description = "Channel 목록 조회 성공"
     )
     @GetMapping()
-    public ResponseEntity<List<ChannelParticipantResponseDto>> findAllByUserId(
+    public ResponseEntity<List<ChannelDto>> findAllByUserId(
             @Parameter(description = "조회할 User ID")
             @RequestParam UUID userId) {
-        List<ChannelParticipantResponseDto> crDto = channelService.findAllByUserId(userId);
+        List<ChannelDto> crDto = channelService.findAllByUserId(userId);
         return ResponseEntity.ok(crDto);
     }
 

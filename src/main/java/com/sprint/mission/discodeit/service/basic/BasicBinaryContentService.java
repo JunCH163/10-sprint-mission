@@ -1,68 +1,80 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentRequestCreateDto;
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentResponseDto;
-import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
+import com.sprint.mission.discodeit.entity.base.BinaryContent;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
-import static com.sprint.mission.discodeit.mapper.BinaryContentMapper.toDto;
-
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class BasicBinaryContentService implements BinaryContentService {
 
     private final BinaryContentRepository binaryContentRepository;
 
-    @Override
-    public BinaryContentResponseDto create(BinaryContentRequestCreateDto request) {
-        Validators.requireNonNull(request, "request");
-        validateBinaryContent(request.bytes(), request.contentType());
+    private final BinaryContentMapper binaryContentMapper;
 
-        long fileSize = request.bytes().length;
+    private final BinaryContentStorage binaryContentStorage;
+
+    @Transactional
+    @Override
+    public BinaryContentDto create(BinaryContentRequestCreateDto request) {
+        Validators.requireNonNull(request, "request");
+        validateBinaryContent(request.data(), request.size(),request.contentType());
 
         BinaryContent binaryContent = new BinaryContent(
                 request.fileName(),
-                fileSize,
-                request.bytes(),
+                request.size(),
                 request.contentType()
         );
-        return toDto(binaryContentRepository.save(binaryContent));
+
+        BinaryContent savedBinaryContent = binaryContentRepository.save(binaryContent);
+        binaryContentStorage.put(savedBinaryContent.getId(), request.data());
+        return binaryContentMapper.toDto(savedBinaryContent);
     }
 
     @Override
-    public BinaryContentResponseDto find(UUID id) {
+    public BinaryContentDto find(UUID id) {
         BinaryContent binaryContent = validateExistenceBinaryContent(id);
-        return toDto(binaryContent);
+        return binaryContentMapper.toDto(binaryContent);
     }
 
     @Override
-    public List<BinaryContentResponseDto> findAllByIdIn(List<UUID> ids) {
+    public List<BinaryContentDto> findAllByIdIn(List<UUID> ids) {
         Validators.requireNonNull(ids, "ids");
-        return binaryContentRepository.findAll().stream()
-                .filter(binaryContent -> ids.contains(binaryContent.getId()))
-                .map(BinaryContentMapper::toDto)
+        return binaryContentRepository.findAllById(ids).stream()
+                .map(binaryContentMapper::toDto)
                 .toList();
     }
 
+    @Transactional
     @Override
     public void delete(UUID id) {
-        validateExistenceBinaryContent(id);
-        binaryContentRepository.deleteById(id);
+        BinaryContent binaryContent = validateExistenceBinaryContent(id);
+        binaryContentRepository.delete(binaryContent);
     }
 
 
-    private void validateBinaryContent(byte[] bytes, String contentType) {
+    private void validateBinaryContent(byte[] bytes, long size, String contentType) {
         if (bytes == null || bytes.length == 0) {
             throw new IllegalArgumentException("첨부파일 데이터가 비어있습니다.");
         }
+
+        if(size <= 0) {
+            throw new IllegalArgumentException("첨부파일 크기가 0입니다.");
+        }
+
         if (contentType == null || contentType.isBlank()) {
             throw new IllegalArgumentException("첨부파일 contentType이 비어있습니다.");
         }
@@ -71,7 +83,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     private BinaryContent validateExistenceBinaryContent(UUID id) {
         Validators.requireNonNull(id, "id는 null이 될 수 없습니다.");
         return binaryContentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("BinaryContent가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("BinaryContent가 존재하지 않습니다."));
 
     }
 }
