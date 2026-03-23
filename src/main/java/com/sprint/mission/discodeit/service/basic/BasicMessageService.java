@@ -18,6 +18,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import com.sprint.mission.discodeit.util.Validators;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Transactional(readOnly = true)
@@ -68,12 +70,31 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public PageResponse<MessageDto> findByChannelId(UUID channelId, Pageable pageable) {
+    public PageResponse<MessageDto> findByChannelId(UUID channelId, LocalDateTime cursor, int size) {
 
-        Slice<Message> messageSlice = messageRepository.findAllByChannelId(channelId, pageable);
+        Pageable limitOnly = PageRequest.of(0, size + 1);
 
-        Slice<MessageDto> dtoSlice = messageSlice.map(messageMapper::toDto);
-        return PageResponseMapper.fromSlice(dtoSlice);
+        List<Message> messages = (cursor == null)
+                ? messageRepository.findAllByChannelIdOrderByCreatedAtDesc(channelId, limitOnly)
+                : messageRepository.findByChannelIdAndCreatedAtLessThanOrderByCreatedAtDesc(channelId, cursor, limitOnly);
+
+        boolean hasNext = messages.size() > size;
+
+        List<Message> content = hasNext ? messages.subList(0, size) : messages;
+
+        LocalDateTime nextCursor = content.isEmpty() ? null : content.get(content.size() - 1).getCreatedAt();
+
+        List<MessageDto> dtos = content.stream()
+                .map(messageMapper::toDto)
+                .toList();
+
+        return PageResponseMapper.fromCursorList(
+                dtos,
+                nextCursor,
+                size,
+                hasNext,
+                null
+        );
     }
 
     @Transactional
