@@ -19,10 +19,12 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
+@Slf4j
 @Service
 public class BasicUserService implements UserService {
 
@@ -39,10 +41,15 @@ public class BasicUserService implements UserService {
     String username = userCreateRequest.username();
     String email = userCreateRequest.email();
 
+    log.debug("사용자 생성 시작. username={}, email={}, hasProfile={}",
+            username, email, optionalProfileCreateRequest.isPresent());
+
     if (userRepository.existsByEmail(email)) {
+      log.warn("사용자 생성 실패. 이미 존재하는 이메일입니다. email={}", email);
       throw new IllegalArgumentException("User with email " + email + " already exists");
     }
     if (userRepository.existsByUsername(username)) {
+        log.warn("사용자 생성 실패. 이미 존재하는 사용자명입니다. username={}", username);
       throw new IllegalArgumentException("User with username " + username + " already exists");
     }
 
@@ -55,6 +62,8 @@ public class BasicUserService implements UserService {
               contentType);
           binaryContentRepository.save(binaryContent);
           binaryContentStorage.put(binaryContent.getId(), bytes);
+          log.info("사용자 프로필 업로드 완료. binaryContentId={}, filename={}",
+                  binaryContent.getId(), fileName);
           return binaryContent;
         })
         .orElse(null);
@@ -65,6 +74,8 @@ public class BasicUserService implements UserService {
     UserStatus userStatus = new UserStatus(user, now);
 
     userRepository.save(user);
+    userStatusRepository.save(userStatus);
+    log.info("사용자 생성 완료. userId={}, username={}", user.getId(), username);
     return userMapper.toDto(user);
   }
 
@@ -87,15 +98,19 @@ public class BasicUserService implements UserService {
   @Override
   public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest,
       Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
+      log.debug("사용자 수정 시작. userId={}, hasProfile={}",
+              userId, optionalProfileCreateRequest.isPresent());
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
 
     String newUsername = userUpdateRequest.newUsername();
     String newEmail = userUpdateRequest.newEmail();
     if (userRepository.existsByEmail(newEmail)) {
+        log.warn("사용자 수정 실패. 이미 존재하는 이메일입니다. userId={}, email={}", userId, newEmail);
       throw new IllegalArgumentException("User with email " + newEmail + " already exists");
     }
     if (userRepository.existsByUsername(newUsername)) {
+        log.warn("사용자 수정 실패. 이미 존재하는 사용자명입니다. userId={}, username={}", userId, newUsername);
       throw new IllegalArgumentException("User with username " + newUsername + " already exists");
     }
 
@@ -109,23 +124,28 @@ public class BasicUserService implements UserService {
               contentType);
           binaryContentRepository.save(binaryContent);
           binaryContentStorage.put(binaryContent.getId(), bytes);
+            log.info("사용자 프로필 업로드 완료. userId={}, binaryContentId={}, filename={}",
+                    userId, binaryContent.getId(), fileName);
           return binaryContent;
         })
         .orElse(null);
 
     String newPassword = userUpdateRequest.newPassword();
     user.update(newUsername, newEmail, newPassword, nullableProfile);
-
+    log.info("사용자 수정 완료. userId={}, username={}", userId, newUsername);
     return userMapper.toDto(user);
   }
 
   @Transactional
   @Override
   public void delete(UUID userId) {
-    if (userRepository.existsById(userId)) {
+      log.debug("사용자 삭제 시작. userId={}", userId);
+    if (!userRepository.existsById(userId)) {
+      log.warn("사용자 삭제 실패. 존재하지 않는 사용자입니다. userId={}", userId);
       throw new NoSuchElementException("User with id " + userId + " not found");
     }
 
     userRepository.deleteById(userId);
+    log.info("사용자 삭제 완료. userId={}", userId);
   }
 }
