@@ -64,7 +64,7 @@ public class UserController implements UserApi {
       @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
       @RequestPart(value = "profile", required = false) MultipartFile profile
   ) {
-    log.debug("사용자 수정 요청 수신. userId={}, hasProfile{}",
+    log.debug("사용자 수정 요청 수신. userId={}, hasProfile={}",
             userId, profile != null && !profile.isEmpty());
     Optional<BinaryContentCreateRequest> profileRequest = Optional.ofNullable(profile)
         .flatMap(this::resolveProfileRequest);
