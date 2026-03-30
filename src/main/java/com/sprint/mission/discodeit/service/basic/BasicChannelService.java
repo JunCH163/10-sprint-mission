@@ -65,7 +65,6 @@ public class BasicChannelService implements ChannelService {
     return channelMapper.toDto(channel);
   }
 
-  @Transactional(readOnly = true)
   @Override
   public ChannelDto find(UUID channelId) {
     return channelRepository.findById(channelId)
@@ -74,7 +73,6 @@ public class BasicChannelService implements ChannelService {
             () -> new ChannelNotFoundException(channelId));
   }
 
-  @Transactional(readOnly = true)
   @Override
   public List<ChannelDto> findAllByUserId(UUID userId) {
     List<UUID> mySubscribedChannelIds = readStatusRepository.findAllByUserId(userId).stream()

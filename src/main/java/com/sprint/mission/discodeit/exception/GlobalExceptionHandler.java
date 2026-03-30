@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.exception;
 
 import java.util.NoSuchElementException;
+
+import com.sprint.mission.discodeit.exception.base.DiscodeitException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,12 +11,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler(IllegalArgumentException.class)
-  public ResponseEntity<String> handleException(IllegalArgumentException e) {
-    e.printStackTrace();
+  @ExceptionHandler(DiscodeitException.class)
+  public ResponseEntity<ErrorResponse> handleDiscodeitException(DiscodeitException e) {
+    HttpStatus status = e.getErrorCode().getStatus();
+
+    ErrorResponse errorResponse = new ErrorResponse(
+            e.getTimestamp(),
+            e.getErrorCode().name(),
+            e.getMessage(),
+            e.getDetails(),
+            e.getClass().getSimpleName(),
+            status.value()
+    );
+
     return ResponseEntity
-        .status(HttpStatus.BAD_REQUEST)
-        .body(e.getMessage());
+            .status(status)
+            .body(errorResponse);
   }
 
   @ExceptionHandler(NoSuchElementException.class)

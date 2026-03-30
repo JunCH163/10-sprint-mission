@@ -88,7 +88,6 @@ public class BasicMessageService implements MessageService {
     return messageMapper.toDto(message);
   }
 
-  @Transactional(readOnly = true)
   @Override
   public MessageDto find(UUID messageId) {
     return messageRepository.findById(messageId)
@@ -97,7 +96,6 @@ public class BasicMessageService implements MessageService {
             () -> new MessageNotFoundException(messageId));
   }
 
-  @Transactional(readOnly = true)
   @Override
   public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant createAt,
       Pageable pageable) {
