@@ -38,8 +38,6 @@ public class BasicChannelService implements ChannelService {
   public ChannelDto create(PublicChannelCreateRequest request) {
     String name = request.name();
     String description = request.description();
-    log.debug("공개 채널 생성 시작. name={}",
-            name);
     Channel channel = new Channel(ChannelType.PUBLIC, name, description);
 
     channelRepository.save(channel);
@@ -51,7 +49,6 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   @Override
   public ChannelDto create(PrivateChannelCreateRequest request) {
-    log.debug("비공개 채널 생성 시작. participantCount={}", request.participantIds().size());
     Channel channel = new Channel(ChannelType.PRIVATE, null, null);
     channelRepository.save(channel);
 
@@ -91,8 +88,6 @@ public class BasicChannelService implements ChannelService {
   public ChannelDto update(UUID channelId, PublicChannelUpdateRequest request) {
     String newName = request.newName();
     String newDescription = request.newDescription();
-    log.debug("채널 수정 시작. channelId={}", channelId);
-
     Channel channel = channelRepository.findById(channelId)
         .orElseThrow(
             () -> new ChannelNotFoundException(channelId));
@@ -108,7 +103,6 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   @Override
   public void delete(UUID channelId) {
-    log.debug("채널 삭제 시작. channelId={}", channelId);
     if (!channelRepository.existsById(channelId)) {
       log.warn("채널 삭제 실패. 존재하지 않는 채널입니다. channelId={}", channelId);
       throw new ChannelNotFoundException(channelId);

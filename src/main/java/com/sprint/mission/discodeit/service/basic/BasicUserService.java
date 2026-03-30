@@ -42,9 +42,6 @@ public class BasicUserService implements UserService {
     String username = userCreateRequest.username();
     String email = userCreateRequest.email();
 
-    log.debug("사용자 생성 시작. username={}, email={}, hasProfile={}",
-            username, email, optionalProfileCreateRequest.isPresent());
-
     if (userRepository.existsByEmail(email)) {
       log.warn("사용자 생성 실패. 이미 존재하는 이메일입니다. email={}", email);
       throw new UserAlreadyExistException("email", email);
@@ -99,8 +96,6 @@ public class BasicUserService implements UserService {
   @Override
   public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest,
       Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
-      log.debug("사용자 수정 시작. userId={}, hasProfile={}",
-              userId, optionalProfileCreateRequest.isPresent());
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -140,7 +135,6 @@ public class BasicUserService implements UserService {
   @Transactional
   @Override
   public void delete(UUID userId) {
-      log.debug("사용자 삭제 시작. userId={}", userId);
     if (!userRepository.existsById(userId)) {
       log.warn("사용자 삭제 실패. 존재하지 않는 사용자입니다. userId={}", userId);
       throw new UserNotFoundException(userId);

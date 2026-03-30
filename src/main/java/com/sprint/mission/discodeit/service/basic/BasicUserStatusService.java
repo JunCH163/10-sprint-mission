@@ -81,8 +81,7 @@ public class BasicUserStatusService implements UserStatusService {
     Instant newLastActiveAt = request.newLastActiveAt();
 
     UserStatus userStatus = userStatusRepository.findByUserId(userId)
-        .orElseThrow(
-            () -> new UserStatusNotFoundException(userId));
+        .orElseThrow(() -> UserStatusNotFoundException.byUserId(userId));
     userStatus.update(newLastActiveAt);
 
     return userStatusMapper.toDto(userStatus);

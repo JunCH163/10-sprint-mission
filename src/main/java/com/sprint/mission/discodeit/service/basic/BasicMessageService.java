@@ -50,8 +50,6 @@ public class BasicMessageService implements MessageService {
       List<BinaryContentCreateRequest> binaryContentCreateRequests) {
     UUID channelId = messageCreateRequest.channelId();
     UUID authorId = messageCreateRequest.authorId();
-    log.debug("메시지 생성 시작. channelId: {}, authorId: {}", channelId, authorId);
-
     Channel channel = channelRepository.findById(channelId)
         .orElseThrow(
             () -> new ChannelNotFoundException(channelId));
@@ -116,7 +114,6 @@ public class BasicMessageService implements MessageService {
   @Transactional
   @Override
   public MessageDto update(UUID messageId, MessageUpdateRequest request) {
-    log.debug("메시지 수정 시작. messageId: {}", messageId);
     String newContent = request.newContent();
     Message message = messageRepository.findById(messageId)
         .orElseThrow(
@@ -130,7 +127,6 @@ public class BasicMessageService implements MessageService {
   @Transactional
   @Override
   public void delete(UUID messageId) {
-    log.debug("메시지 삭제 시작. messageId: {}", messageId);
     if (!messageRepository.existsById(messageId)) {
       log.warn("메시지 삭제 실패. 존재하지 않는 메시지입니다. messageId={}", messageId);
       throw new MessageNotFoundException(messageId);
