@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.exception;
 
+import java.time.Instant;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import com.sprint.mission.discodeit.exception.base.DiscodeitException;
@@ -29,19 +31,20 @@ public class GlobalExceptionHandler {
             .body(errorResponse);
   }
 
-  @ExceptionHandler(NoSuchElementException.class)
-  public ResponseEntity<String> handleException(NoSuchElementException e) {
-    e.printStackTrace();
-    return ResponseEntity
-        .status(HttpStatus.NOT_FOUND)
-        .body(e.getMessage());
-  }
-
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<String> handleException(Exception e) {
-    e.printStackTrace();
+  public ResponseEntity<ErrorResponse> handleException(Exception e) {
+    HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+    ErrorResponse errorResponse = new ErrorResponse(
+            Instant.now(),
+            "INTERNAL_SERVER_ERROR",
+            "Internal server error",
+            Map.of(),
+            e.getClass().getSimpleName(),
+            status.value()
+    );
     return ResponseEntity
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(e.getMessage());
+            .status(status)
+            .body(errorResponse);
   }
 }
