@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleException(Exception e) {
-    log.error("예상치 못한 오류 발생: {}", e.getMessage(), e);
+    log.error("?덉긽移?紐삵븳 ?ㅻ쪟 諛쒖깮: {}", e.getMessage(), e);
     ErrorResponse errorResponse = new ErrorResponse(e, HttpStatus.INTERNAL_SERVER_ERROR.value());
     return ResponseEntity
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(DiscodeitException.class)
   public ResponseEntity<ErrorResponse> handleDiscodeitException(DiscodeitException exception) {
-    log.error("커스텀 예외 발생: code={}, message={}", exception.getErrorCode(), exception.getMessage(), exception);
+    log.error("而ㅼ뒪? ?덉쇅 諛쒖깮: code={}, message={}", exception.getErrorCode(), exception.getMessage(), exception);
     HttpStatus status = determineHttpStatus(exception);
     ErrorResponse response = new ErrorResponse(exception, status.value());
     return ResponseEntity
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-    log.error("요청 유효성 검사 실패: {}", ex.getMessage());
+    log.error("?붿껌 ?좏슚??寃???ㅽ뙣: {}", ex.getMessage());
     
     Map<String, Object> validationErrors = new HashMap<>();
     ex.getBindingResult().getAllErrors().forEach(error -> {
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
     ErrorResponse response = new ErrorResponse(
         Instant.now(), 
         "VALIDATION_ERROR",
-        "요청 데이터 유효성 검사에 실패했습니다",
+        "?붿껌 ?곗씠???좏슚??寃?ъ뿉 ?ㅽ뙣?덉뒿?덈떎",
         validationErrors,
         ex.getClass().getSimpleName(),
         HttpStatus.BAD_REQUEST.value()

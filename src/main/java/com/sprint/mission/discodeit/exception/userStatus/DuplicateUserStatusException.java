@@ -1,6 +1,7 @@
-package com.sprint.mission.discodeit.exception.userstatus;
+package com.sprint.mission.discodeit.exception.userStatus;
 
 import com.sprint.mission.discodeit.exception.ErrorCode;
+import com.sprint.mission.discodeit.exception.userStatus.UserStatusException;
 
 import java.util.UUID;
 
