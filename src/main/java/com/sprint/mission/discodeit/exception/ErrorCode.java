@@ -4,36 +4,36 @@ import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
-    // User 愿???먮윭 肄붾뱶
-    USER_NOT_FOUND("?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎."),
-    DUPLICATE_USER("?대? 議댁옱?섎뒗 ?ъ슜?먯엯?덈떎."),
-    INVALID_USER_CREDENTIALS("?섎せ???ъ슜???몄쬆 ?뺣낫?낅땲??"),
-    
-    // Channel 愿???먮윭 肄붾뱶
-    CHANNEL_NOT_FOUND("梨꾨꼸??李얠쓣 ???놁뒿?덈떎."),
-    PRIVATE_CHANNEL_UPDATE("鍮꾧났媛?梨꾨꼸? ?섏젙?????놁뒿?덈떎."),
-    
-    // Message 愿???먮윭 肄붾뱶
-    MESSAGE_NOT_FOUND("硫붿떆吏瑜?李얠쓣 ???놁뒿?덈떎."),
-    
-    // BinaryContent 愿???먮윭 肄붾뱶
-    BINARY_CONTENT_NOT_FOUND("諛붿씠?덈━ 而⑦뀗痢좊? 李얠쓣 ???놁뒿?덈떎."),
-    
-    // ReadStatus 愿???먮윭 肄붾뱶
-    READ_STATUS_NOT_FOUND("?쎌쓬 ?곹깭瑜?李얠쓣 ???놁뒿?덈떎."),
-    DUPLICATE_READ_STATUS("?대? 議댁옱?섎뒗 ?쎌쓬 ?곹깭?낅땲??"),
-    
-    // UserStatus 愿???먮윭 肄붾뱶
-    USER_STATUS_NOT_FOUND("?ъ슜???곹깭瑜?李얠쓣 ???놁뒿?덈떎."),
-    DUPLICATE_USER_STATUS("?대? 議댁옱?섎뒗 ?ъ슜???곹깭?낅땲??"),
-    
-    // Server ?먮윭 肄붾뱶
-    INTERNAL_SERVER_ERROR("?쒕쾭 ?대? ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎."),
-    INVALID_REQUEST("?섎せ???붿껌?낅땲??");
+    // User errors
+    USER_NOT_FOUND("사용자를 찾을 수 없습니다."),
+    DUPLICATE_USER("이미 존재하는 사용자입니다."),
+    INVALID_USER_CREDENTIALS("아이디 또는 비밀번호가 올바르지 않습니다."),
+
+    // Channel errors
+    CHANNEL_NOT_FOUND("채널을 찾을 수 없습니다."),
+    PRIVATE_CHANNEL_UPDATE("비공개 채널은 수정할 수 없습니다."),
+
+    // Message errors
+    MESSAGE_NOT_FOUND("메시지를 찾을 수 없습니다."),
+
+    // Binary content errors
+    BINARY_CONTENT_NOT_FOUND("바이너리 콘텐츠를 찾을 수 없습니다."),
+
+    // Read status errors
+    READ_STATUS_NOT_FOUND("읽음 상태를 찾을 수 없습니다."),
+    DUPLICATE_READ_STATUS("이미 존재하는 읽음 상태입니다."),
+
+    // User status errors
+    USER_STATUS_NOT_FOUND("사용자 상태를 찾을 수 없습니다."),
+    DUPLICATE_USER_STATUS("이미 존재하는 사용자 상태입니다."),
+
+    // Common errors
+    INTERNAL_SERVER_ERROR("서버 내부 오류가 발생했습니다."),
+    INVALID_REQUEST("잘못된 요청입니다.");
 
     private final String message;
 
     ErrorCode(String message) {
         this.message = message;
     }
-} 
+}

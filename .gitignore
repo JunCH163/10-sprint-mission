@@ -41,6 +41,10 @@ bin/
 ### Discodeit ###
 .discodeit
 
+# env
+.env
+.env.*
+
 ### 숨김 파일 ###
 .*
 !.gitignore
