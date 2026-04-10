@@ -12,6 +12,12 @@ spring:
       hibernate:
         format_sql: true
 
+discodeit:
+  storage:
+    type: local
+    local:
+      root-path: build/test-storage
+
 logging:
   level:
     com.sprint.mission.discodeit: debug
