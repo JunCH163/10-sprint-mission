@@ -1,6 +1,10 @@
 name: CI Test
 
 on:
+  push:
+    branches:
+      - main
+      - sprint8
   pull_request:
     branches:
       - main
