@@ -1,2 +1,3 @@
-# 0-spring-mission
-스프린트 미션 모범 답안 리포지토리입니다.
+# 10-spring-mission
+
+[![codecov](https://codecov.io/gh/JunCH163/10-sprint-mission/branch/sprint8/graph/badge.svg)](https://codecov.io/gh/JunCH163/10-sprint-mission)
