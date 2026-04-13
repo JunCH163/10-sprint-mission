@@ -106,30 +106,30 @@ jobs:
             --service "$ECS_SERVICE" \
             --desired-count 0
 
-          aws ecs wait services-stable \
-            --cluster "$ECS_CLUSTER" \
-            --services "$ECS_SERVICE"
-
-      - name: Wait until all running tasks are stopped
+      - name: Wait until service is fully scaled down
         run: |
-          for i in $(seq 1 30); do
-            RUNNING_TASK_COUNT=$(aws ecs list-tasks \
+          for i in $(seq 1 36); do
+            SERVICE_STATE=$(aws ecs describe-services \
               --cluster "$ECS_CLUSTER" \
-              --service-name "$ECS_SERVICE" \
-              --desired-status RUNNING \
-              --query 'length(taskArns)' \
+              --services "$ECS_SERVICE" \
+              --query 'services[0].[desiredCount,runningCount,pendingCount]' \
               --output text)
 
-            if [ "$RUNNING_TASK_COUNT" = "0" ]; then
-              echo "No running tasks remain."
+            DESIRED_COUNT=$(echo "$SERVICE_STATE" | awk '{print $1}')
+            RUNNING_COUNT=$(echo "$SERVICE_STATE" | awk '{print $2}')
+            PENDING_COUNT=$(echo "$SERVICE_STATE" | awk '{print $3}')
+
+            echo "desired=$DESIRED_COUNT running=$RUNNING_COUNT pending=$PENDING_COUNT"
+
+            if [ "$DESIRED_COUNT" = "0" ] && [ "$RUNNING_COUNT" = "0" ] && [ "$PENDING_COUNT" = "0" ]; then
+              echo "Service scale-down completed."
               exit 0
             fi
 
-            echo "Waiting for running tasks to stop. Current count: $RUNNING_TASK_COUNT"
             sleep 10
           done
 
-          echo "Timed out waiting for running tasks to stop."
+          echo "Timed out waiting for the service to scale down."
           exit 1
 
       - name: Register new task definition
@@ -148,7 +148,8 @@ jobs:
             --cluster "$ECS_CLUSTER" \
             --service "$ECS_SERVICE" \
             --task-definition "${{ steps.register-task.outputs.task_definition_arn }}" \
-            --desired-count 1
+            --desired-count 1 \
+            --deployment-configuration "maximumPercent=100,minimumHealthyPercent=0"
 
           aws ecs wait services-stable \
             --cluster "$ECS_CLUSTER" \
