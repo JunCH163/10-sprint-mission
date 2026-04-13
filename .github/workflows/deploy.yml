@@ -110,6 +110,28 @@ jobs:
             --cluster "$ECS_CLUSTER" \
             --services "$ECS_SERVICE"
 
+      - name: Wait until all running tasks are stopped
+        run: |
+          for i in $(seq 1 30); do
+            RUNNING_TASK_COUNT=$(aws ecs list-tasks \
+              --cluster "$ECS_CLUSTER" \
+              --service-name "$ECS_SERVICE" \
+              --desired-status RUNNING \
+              --query 'length(taskArns)' \
+              --output text)
+
+            if [ "$RUNNING_TASK_COUNT" = "0" ]; then
+              echo "No running tasks remain."
+              exit 0
+            fi
+
+            echo "Waiting for running tasks to stop. Current count: $RUNNING_TASK_COUNT"
+            sleep 10
+          done
+
+          echo "Timed out waiting for running tasks to stop."
+          exit 1
+
       - name: Register new task definition
         id: register-task
         run: |
