@@ -18,34 +18,59 @@ env:
   ECR_PUBLIC_REGION: us-east-1
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
+
+    outputs:
+      image: ${{ steps.image-meta.outputs.image }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials for ECR Public
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ env.ECR_PUBLIC_REGION }}
+
+      - name: Login to Amazon ECR Public
+        run: |
+          ECR_PUBLIC_REGISTRY=$(echo "$ECR_REPOSITORY_URI" | cut -d/ -f1-2)
+          aws ecr-public get-login-password --region "$ECR_PUBLIC_REGION" | docker login --username AWS --password-stdin "$ECR_PUBLIC_REGISTRY"
+
+      - name: Build Docker image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t "$ECR_REPOSITORY_URI:latest" -t "$ECR_REPOSITORY_URI:$IMAGE_TAG" .
+
+      - name: Push Docker image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker push "$ECR_REPOSITORY_URI:latest"
+          docker push "$ECR_REPOSITORY_URI:$IMAGE_TAG"
+
+      - name: Set image metadata
+        id: image-meta
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "image=$ECR_REPOSITORY_URI:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+  update-ecs-service:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Configure AWS credentials for ECS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR Public
-        run: |
-          ECR_PUBLIC_REGISTRY=$(echo "$ECR_REPOSITORY_URI" | cut -d/ -f1-2)
-          aws ecr-public get-login-password --region "$ECR_PUBLIC_REGION" | \
-            docker login --username AWS --password-stdin "$ECR_PUBLIC_REGISTRY"
-
-      - name: Build and push Docker image
-        id: build-image
-        env:
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REPOSITORY_URI:$IMAGE_TAG .
-          docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
-          echo "image=$ECR_REPOSITORY_URI:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Download current task definition
         run: |
@@ -55,7 +80,7 @@ jobs:
 
       - name: Render new task definition
         run: |
-          jq --arg IMAGE "${{ steps.build-image.outputs.image }}" \
+          jq --arg IMAGE "${{ needs.build-and-push.outputs.image }}" \
              --arg CONTAINER_NAME "$ECS_CONTAINER_NAME" '
             del(
               .taskDefinitionArn,
@@ -74,17 +99,34 @@ jobs:
               )
           ' task-definition.json > task-definition-rendered.json
 
-      - name: Deploy to Amazon ECS
+      - name: Scale down existing service
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --desired-count 0
+
+          aws ecs wait services-stable \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE"
+
+      - name: Register new task definition
+        id: register-task
         run: |
           TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
             --cli-input-json file://task-definition-rendered.json \
             --query 'taskDefinition.taskDefinitionArn' \
             --output text)
 
+          echo "task_definition_arn=$TASK_DEFINITION_ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Update ECS service
+        run: |
           aws ecs update-service \
             --cluster "$ECS_CLUSTER" \
             --service "$ECS_SERVICE" \
-            --task-definition "$TASK_DEFINITION_ARN"
+            --task-definition "${{ steps.register-task.outputs.task_definition_arn }}" \
+            --desired-count 1
 
           aws ecs wait services-stable \
             --cluster "$ECS_CLUSTER" \
