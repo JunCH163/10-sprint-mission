@@ -148,8 +148,7 @@ jobs:
             --cluster "$ECS_CLUSTER" \
             --service "$ECS_SERVICE" \
             --task-definition "${{ steps.register-task.outputs.task_definition_arn }}" \
-            --desired-count 1 \
-            --deployment-configuration "maximumPercent=100,minimumHealthyPercent=0"
+            --desired-count 1
 
           aws ecs wait services-stable \
             --cluster "$ECS_CLUSTER" \
