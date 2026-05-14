@@ -4,9 +4,6 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
-  sql:
-    init:
-      mode: never
   jpa:
     hibernate:
       ddl-auto: create
@@ -14,12 +11,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
-discodeit:
-  storage:
-    type: local
-    local:
-      root-path: build/test-storage
 
 logging:
   level:
