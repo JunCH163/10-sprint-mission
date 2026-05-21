@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
@@ -11,17 +12,23 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.user.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
+import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.UserOnlineStatusProvider;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +44,10 @@ public class BasicUserService implements UserService {
   private final UserMapper userMapper;
   private final BinaryContentRepository binaryContentRepository;
   private final BinaryContentStorage binaryContentStorage;
-    private final PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
+  private final SessionRegistry sessionRegistry;
+  private final BinaryContentMapper binaryContentMapper;
+  private final UserOnlineStatusProvider userOnlineStatusProvider;
 
   @Transactional
   @Override
@@ -144,6 +154,7 @@ public class BasicUserService implements UserService {
     return userMapper.toDto(user);
   }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @Override
     public UserDto updateRole(UserRoleUpdateRequest request) {
@@ -154,6 +165,7 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() -> UserNotFoundException.withId(userId));
 
         user.updateRole(newRole);
+        expireUserSessions(user.getId());
 
         return userMapper.toDto(user);
     }
@@ -170,4 +182,33 @@ public class BasicUserService implements UserService {
     userRepository.deleteById(userId);
     log.info("사용자 삭제 완료: id={}", userId);
   }
+
+    private void expireUserSessions(UUID userId) {
+        for (Object principal : sessionRegistry.getAllPrincipals()) {
+            if (!(principal instanceof DiscodeitUserDetails userDetails)) {
+                continue;
+            }
+
+            if (!userDetails.getUserDto().id().equals(userId)) {
+                continue;
+            }
+
+            List<SessionInformation> sessions =
+                    sessionRegistry.getAllSessions(principal, false);
+
+            for (SessionInformation session : sessions) {
+                session.expireNow();
+            }
+        }
+    }
+
+    private UserDto toUserDto(User user) {
+        BinaryContentDto profileDto = user.getProfile() != null
+                ? binaryContentMapper.toDto(user.getProfile())
+                : null;
+
+        boolean online = userOnlineStatusProvider.isOnline(user.getId());
+
+        return UserDto.of(user, profileDto, online);
+    }
 }
